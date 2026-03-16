@@ -1,0 +1,19 @@
+{
+    "configurations": [
+        {
+            "name": "Win32",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "${userHome}/Documents/Arduino/**",
+                "${userHome}/Documents/_Workspace/Arduino/**",
+                "${userHome}/AppData/Local/Arduino15/**"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE"
+            ]
+        }
+    ],
+    "version": 4
+}
