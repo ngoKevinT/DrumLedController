@@ -1,0 +1,3 @@
+<component id="button_set" width="140" height="24" bg_color="#005599" text_color="#FFFFFF" radius="4">
+    <button id="root" x="0" y="0" width="140" height="24" text="SET" />
+</component>

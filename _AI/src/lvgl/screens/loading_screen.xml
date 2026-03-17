@@ -1,0 +1,7 @@
+<screen id="loading_screen" width="320" height="170" bg_color="#0F172A">
+    <obj id="root" x="0" y="0" width="320" height="170" layout="none">
+        <label id="title" x="160" y="64" align="center" text="DRUM LED CONTROLLER" text_color="#E2E8F0" font="lv_font_montserrat_16" />
+        <label id="status" x="160" y="88" align="center" text="Initializing UI and nodes..." text_color="#93C5FD" font="lv_font_montserrat_10" />
+        <spinner id="boot_spinner" x="160" y="118" align="center" width="20" height="20" />
+    </obj>
+</screen>
