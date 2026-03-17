@@ -1,5 +1,5 @@
 <project name="drum_led_controller">
     <displays>
-        <display name="esp32_320x240" width="320" height="240" color_format="rgb565"/>
+        <display name="main" width="320" height="170"/>
     </displays>
 </project>

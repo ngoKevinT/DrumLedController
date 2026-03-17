@@ -27,14 +27,14 @@
               y="72"
               text="Sensitivity"
               style_text_color="0xE5E7EB"/>
-        <lv_slider name="slider_sensitivity" x="96" y="74" width="138" height="10" min_value="0" max_value="255" value="128"/>
+        <lv_slider name="slider_sensitivity" x="96" y="74" width="138" height="10"/>
 
         <lv_label name="lbl_retrigger"
               x="8"
               y="92"
               text="Retrigger ms"
               style_text_color="0xE5E7EB"/>
-        <lv_slider name="slider_retrigger" x="96" y="94" width="138" height="10" min_value="1" max_value="120" value="30"/>
+        <lv_slider name="slider_retrigger" x="96" y="94" width="138" height="10"/>
 
         <lv_label name="lbl_node_title"
               x="8"

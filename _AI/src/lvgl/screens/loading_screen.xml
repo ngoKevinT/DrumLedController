@@ -12,6 +12,10 @@
               text="Initializing UI and nodes..."
               style_text_color="0x93C5FD"/>
 
-        <lv_spinner name="boot_spinner" x="150" y="118" width="20" height="20"/>
+        <lv_label name="boot_indicator"
+              x="146"
+              y="118"
+              text="..."
+              style_text_color="0x93C5FD"/>
     </view>
 </screen>
