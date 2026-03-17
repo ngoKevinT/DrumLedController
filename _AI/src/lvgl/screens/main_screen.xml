@@ -1,69 +1,121 @@
 <screen>
-    <view width="320" height="170" style_bg_color="0x111111">
+    <view width="1024"
+          height="600"
+          style_bg_color="0x111111"
+          style_pad_left="10"
+          style_pad_right="10"
+          style_pad_top="10"
+          style_pad_bottom="10"
+          style_pad_column="10"
+          flex_flow="row">
         <lv_obj name="panel_left"
-                x="0"
-                y="0"
-                width="160"
-                height="170"
+                width="360"
+                height="580"
                 style_bg_color="0x1A1A2E"
-                style_pad_all="6">
+                style_border_width="0"
+                style_radius="0"
+                style_pad_left="10"
+                style_pad_right="10"
+                style_pad_top="14"
+                style_pad_bottom="10"
+                style_pad_row="14"
+                flex_flow="column">
             <lv_label name="left_title"
-                      x="56"
-                      y="10"
                       text="CONTROL"
                       style_text_color="0xA5B4FC"/>
 
-            <button_primary name="btn_mode_up" x="10" y="28" text="MODE UP"/>
-            <button_primary name="btn_mode_down" x="84" y="28" text="MODE DOWN"/>
+            <lv_obj name="control_buttons"
+                    width="100%"
+                    style_bg_opa="0"
+                    style_border_width="0"
+                    style_pad_left="0"
+                    style_pad_right="0"
+                    style_pad_top="0"
+                    style_pad_bottom="0"
+                    style_pad_row="10"
+                    style_pad_column="10"
+                    flex_flow="row_wrap">
+                <button_primary name="btn_mode_up" text="MODE UP" width="165" height="50"/>
+                <button_primary name="btn_mode_down" text="MODE DOWN" width="165" height="50"/>
+                <button_primary name="btn_color_up" text="COLOR UP" width="165" height="50"/>
+                <button_primary name="btn_color_down" text="COLOR DOWN" width="165" height="50"/>
+            </lv_obj>
 
-            <button_primary name="btn_color_up" x="10" y="56" text="COLOR UP"/>
-            <button_primary name="btn_color_down" x="84" y="56" text="COLOR DOWN"/>
+            <lv_obj name="selection_row"
+                    width="100%"
+                    style_bg_opa="0"
+                    style_border_width="0"
+                    style_pad_left="0"
+                    style_pad_right="0"
+                    style_pad_top="0"
+                    style_pad_bottom="0"
+                    style_pad_column="12"
+                    style_pad_row="0"
+                    flex_flow="row">
+                <button_arrow name="btn_prev" text="&lt;" width="50" height="50"/>
+                <lv_label name="lbl_selection"
+                          width="236"
+                          text="Mode: Pure Reactive\nColor: #FFFFFF"
+                          style_text_color="0xE5E7EB"/>
+                <button_arrow name="btn_next" text="&gt;" width="50" height="50"/>
+            </lv_obj>
 
-            <button_arrow name="btn_prev" x="10" y="88" text="&lt;"/>
-            <lv_label name="lbl_selection"
-                      x="40"
-                      y="90"
-                      width="80"
-                      text="Mode: Pure Reactive\nColor: #FFFFFF"
-                      style_text_color="0xE5E7EB"/>
-            <button_arrow name="btn_next" x="126" y="88" text="&gt;"/>
+            <lv_obj name="left_spacer"
+                    width="100%"
+                    flex_grow="1"
+                    style_bg_opa="0"
+                    style_border_width="0"/>
 
-            <button_set name="btn_set" x="10" y="136" text="SET"/>
+            <button_set name="btn_set" text="SET" width="100%" height="54"/>
         </lv_obj>
 
         <lv_obj name="panel_right"
-                x="160"
-                y="0"
-                width="160"
-                height="170"
+                width="634"
+                height="580"
                 style_bg_color="0x0D0D1A"
-                style_pad_all="4">
+                style_border_width="0"
+                style_radius="0"
+                style_pad_left="10"
+                style_pad_right="10"
+                style_pad_top="14"
+                style_pad_bottom="10"
+                style_pad_row="14"
+                flex_flow="column">
             <lv_label name="right_title"
-                      x="34"
-                      y="10"
                       text="DRUM MONITOR"
                       style_text_color="0x88CCAA"/>
 
-            <lv_button name="node_snare" x="6" y="28" width="70" height="42">
-                <lv_label text="SNARE"/>
-            </lv_button>
+            <lv_obj name="drum_grid"
+                    width="100%"
+                    flex_grow="1"
+                    style_bg_opa="0"
+                    style_border_width="0"
+                    style_pad_left="0"
+                    style_pad_right="0"
+                    style_pad_top="0"
+                    style_pad_bottom="0"
+                    style_pad_row="10"
+                    style_pad_column="10"
+                    flex_flow="row_wrap">
+                <lv_button name="node_snare" width="302" height="220">
+                    <lv_label text="SNARE"/>
+                </lv_button>
 
-            <lv_button name="node_ttom" x="84" y="28" width="70" height="42">
-                <lv_label text="T.TOM"/>
-            </lv_button>
+                <lv_button name="node_ttom" width="302" height="220">
+                    <lv_label text="T.TOM"/>
+                </lv_button>
 
-            <lv_button name="node_ftom" x="6" y="76" width="70" height="42">
-                <lv_label text="F.TOM"/>
-            </lv_button>
+                <lv_button name="node_ftom" width="302" height="220">
+                    <lv_label text="F.TOM"/>
+                </lv_button>
 
-            <lv_button name="node_kick" x="84" y="76" width="70" height="42">
-                <lv_label text="KICK"/>
-            </lv_button>
+                <lv_button name="node_kick" width="302" height="220">
+                    <lv_label text="KICK"/>
+                </lv_button>
+            </lv_obj>
 
             <lv_label name="lbl_node_info"
-                      x="10"
-                      y="146"
-                      width="144"
+                      width="100%"
                       text="Selected drum: SNARE"
                       style_text_color="0xCBD5E1"/>
         </lv_obj>

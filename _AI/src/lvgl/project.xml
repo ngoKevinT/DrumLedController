@@ -1,7 +1,7 @@
 <project name="drum_led_controller">
 	<targets>
 		<target name="esp32_nextion">
-			<display width="320" height="170"/>
+			<display width="1024" height="600"/>
 		</target>
 	</targets>
 </project>
