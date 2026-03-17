@@ -3,6 +3,12 @@
 #include <lvgl.h>
 #include <stdint.h>
 
+#if defined(__GNUC__) || defined(__clang__)
+#define UI_WEAK __attribute__((weak))
+#else
+#define UI_WEAK
+#endif
+
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
@@ -39,6 +45,13 @@ typedef enum {
     MODE_TRAILING_EDGE  = 5,
     MODE_VOID           = 6
 } led_mode_t;
+
+/** App-level screens managed by the UI manager. */
+typedef enum {
+    UI_SCREEN_LOADING = 0,
+    UI_SCREEN_MAIN    = 1,
+    UI_SCREEN_SETTINGS = 2
+} ui_screen_t;
 
 // ---------------------------------------------------------------------------
 // Data Structures
@@ -122,6 +135,18 @@ void ui_submit_staging(drum_id_t drum_id);
 void ui_sync_all(void);
 
 /**
+ * @brief Show one of the app screens.
+ *
+ * @param screen  Target screen to display.
+ */
+void ui_show_screen(ui_screen_t screen);
+
+/**
+ * @brief Get the currently active app screen.
+ */
+ui_screen_t ui_get_active_screen(void);
+
+/**
  * @brief  Return a pointer to the canonical config for a given node.
  *         Read-only; do not write directly – use the staging workflow.
  */
@@ -144,8 +169,7 @@ const drum_staging_t *ui_get_staging(drum_id_t drum_id);
  * @param  drum_id   Target node.
  * @param  cfg       Config to transmit.
  */
-void __attribute__((weak))
-ui_transmit_config(drum_id_t drum_id, const drum_config_t *cfg);
+UI_WEAK void ui_transmit_config(drum_id_t drum_id, const drum_config_t *cfg);
 
 #ifdef __cplusplus
 }
