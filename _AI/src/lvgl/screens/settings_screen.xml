@@ -1,24 +1,71 @@
-<screen id="settings_screen" width="320" height="170" bg_color="#101827">
-    <obj id="root" x="0" y="0" width="320" height="170" layout="none" pad_all="8">
-        <label id="title" x="8" y="8" text="SETTINGS" text_color="#D1FAE5" font="lv_font_montserrat_14" />
-        <button id="btn_back" x="226" y="8" width="86" height="22" text="Back" />
+<screen>
+    <view width="320" height="170" style_bg_color="0x101827">
+        <lv_label name="title"
+              x="8"
+              y="8"
+              text="SETTINGS"
+              style_text_color="0xD1FAE5"/>
 
-        <label id="lbl_connected" x="8" y="32" text="Connected nodes: 0 / 4" text_color="#A7F3D0" font="lv_font_montserrat_10" />
+        <lv_button name="btn_back" x="226" y="8" width="86" height="22">
+            <lv_label text="Back"/>
+        </lv_button>
 
-        <label id="lbl_global_title" x="8" y="52" text="Global Defaults" text_color="#BFDBFE" font="lv_font_montserrat_12" />
-        <label id="lbl_sensitivity" x="8" y="72" text="Sensitivity" text_color="#E5E7EB" font="lv_font_montserrat_10" />
-        <slider id="slider_sensitivity" x="96" y="74" width="138" height="10" min="0" max="255" value="128" />
+        <lv_label name="lbl_connected"
+              x="8"
+              y="32"
+              text="Connected nodes: 0 / 4"
+              style_text_color="0xA7F3D0"/>
 
-        <label id="lbl_retrigger" x="8" y="92" text="Retrigger ms" text_color="#E5E7EB" font="lv_font_montserrat_10" />
-        <slider id="slider_retrigger" x="96" y="94" width="138" height="10" min="1" max="120" value="30" />
+        <lv_label name="lbl_global_title"
+              x="8"
+              y="52"
+              text="Global Defaults"
+              style_text_color="0xBFDBFE"/>
 
-        <label id="lbl_node_title" x="8" y="114" text="Connected Drum Node Settings" text_color="#FDE68A" font="lv_font_montserrat_12" />
+        <lv_label name="lbl_sensitivity"
+              x="8"
+              y="72"
+              text="Sensitivity"
+              style_text_color="0xE5E7EB"/>
+        <lv_slider name="slider_sensitivity" x="96" y="74" width="138" height="10" min_value="0" max_value="255" value="128"/>
 
-        <button id="btn_node_prev" x="8" y="134" width="22" height="18" text="<" />
-        <label id="lbl_node_name" x="38" y="137" text="Node: SNARE" text_color="#FEF3C7" font="lv_font_montserrat_10" />
-        <button id="btn_node_next" x="154" y="134" width="22" height="18" text=">" />
+        <lv_label name="lbl_retrigger"
+              x="8"
+              y="92"
+              text="Retrigger ms"
+              style_text_color="0xE5E7EB"/>
+        <lv_slider name="slider_retrigger" x="96" y="94" width="138" height="10" min_value="1" max_value="120" value="30"/>
 
-        <label id="lbl_node_mode" x="8" y="154" text="Mode: Pure Reactive" text_color="#E5E7EB" font="lv_font_montserrat_10" />
-        <label id="lbl_node_color" x="166" y="154" text="Color: #FFFFFF" text_color="#E5E7EB" font="lv_font_montserrat_10" />
-    </obj>
+        <lv_label name="lbl_node_title"
+              x="8"
+              y="114"
+              text="Connected Drum Node Settings"
+              style_text_color="0xFDE68A"/>
+
+        <lv_button name="btn_node_prev" x="8" y="134" width="22" height="18">
+            <lv_label text="&lt;"/>
+        </lv_button>
+
+        <lv_label name="lbl_node_name"
+              x="38"
+              y="137"
+              text="Node: SNARE"
+              style_text_color="0xFEF3C7"/>
+
+        <lv_button name="btn_node_next" x="154" y="134" width="22" height="18">
+            <lv_label text="&gt;"/>
+        </lv_button>
+
+        <lv_label name="lbl_node_mode"
+              x="8"
+              y="154"
+              text="Mode: Pure Reactive"
+              style_text_color="0xE5E7EB"/>
+
+        <lv_label name="lbl_node_color"
+              x="166"
+              y="154"
+              text="Color: #FFFFFF"
+              style_text_color="0xE5E7EB"/>
+    </view>
 </screen>

@@ -1,28 +1,71 @@
-<screen id="main_screen" width="320" height="170" bg_color="#111111">
-    <obj id="panel_left" x="0" y="0" width="160" height="170" bg_color="#1A1A2E" pad_all="6" layout="none">
-        <label id="left_title" x="80" y="10" align="center" text="CONTROL" text_color="#A5B4FC" font="lv_font_montserrat_10" />
+<screen>
+    <view width="320" height="170" style_bg_color="0x111111">
+        <lv_obj name="panel_left"
+                x="0"
+                y="0"
+                width="160"
+                height="170"
+                style_bg_color="0x1A1A2E"
+                style_pad_all="6">
+            <lv_label name="left_title"
+                      x="56"
+                      y="10"
+                      text="CONTROL"
+                      style_text_color="0xA5B4FC"/>
 
-        <button id="btn_mode_up" x="10" y="28" width="66" height="22" text="MODE UP" />
-        <button id="btn_mode_down" x="84" y="28" width="66" height="22" text="MODE DOWN" />
+            <button_primary name="btn_mode_up" x="10" y="28" text="MODE UP"/>
+            <button_primary name="btn_mode_down" x="84" y="28" text="MODE DOWN"/>
 
-        <button id="btn_color_up" x="10" y="56" width="66" height="22" text="COLOR UP" />
-        <button id="btn_color_down" x="84" y="56" width="66" height="22" text="COLOR DOWN" />
+            <button_primary name="btn_color_up" x="10" y="56" text="COLOR UP"/>
+            <button_primary name="btn_color_down" x="84" y="56" text="COLOR DOWN"/>
 
-        <button id="btn_prev" x="10" y="88" width="24" height="24" text="<" />
-        <label id="lbl_selection" x="80" y="100" align="center" width="92" long_mode="wrap" text="Mode: Pure Reactive\nColor: #FFFFFF" text_color="#E5E7EB" font="lv_font_montserrat_10" />
-        <button id="btn_next" x="126" y="88" width="24" height="24" text=">" />
+            <button_arrow name="btn_prev" x="10" y="88" text="&lt;"/>
+            <lv_label name="lbl_selection"
+                      x="40"
+                      y="90"
+                      width="80"
+                      text="Mode: Pure Reactive\nColor: #FFFFFF"
+                      style_text_color="0xE5E7EB"/>
+            <button_arrow name="btn_next" x="126" y="88" text="&gt;"/>
 
-        <button id="btn_set" x="10" y="136" width="140" height="24" text="SET" />
-    </obj>
+            <button_set name="btn_set" x="10" y="136" text="SET"/>
+        </lv_obj>
 
-    <obj id="panel_right" x="160" y="0" width="160" height="170" bg_color="#0D0D1A" pad_all="4" layout="none">
-        <label id="right_title" x="80" y="10" align="center" text="DRUM MONITOR" text_color="#88CCAA" font="lv_font_montserrat_10" />
+        <lv_obj name="panel_right"
+                x="160"
+                y="0"
+                width="160"
+                height="170"
+                style_bg_color="0x0D0D1A"
+                style_pad_all="4">
+            <lv_label name="right_title"
+                      x="34"
+                      y="10"
+                      text="DRUM MONITOR"
+                      style_text_color="0x88CCAA"/>
 
-        <button id="node_snare" x="6" y="28" width="70" height="42" text="SNARE" />
-        <button id="node_ttom" x="84" y="28" width="70" height="42" text="T.TOM" />
-        <button id="node_ftom" x="6" y="76" width="70" height="42" text="F.TOM" />
-        <button id="node_kick" x="84" y="76" width="70" height="42" text="KICK" />
+            <lv_button name="node_snare" x="6" y="28" width="70" height="42">
+                <lv_label text="SNARE"/>
+            </lv_button>
 
-        <label id="lbl_node_info" x="80" y="146" align="center" width="150" long_mode="wrap" text="Selected drum: SNARE" text_color="#CBD5E1" font="lv_font_montserrat_8" />
-    </obj>
+            <lv_button name="node_ttom" x="84" y="28" width="70" height="42">
+                <lv_label text="T.TOM"/>
+            </lv_button>
+
+            <lv_button name="node_ftom" x="6" y="76" width="70" height="42">
+                <lv_label text="F.TOM"/>
+            </lv_button>
+
+            <lv_button name="node_kick" x="84" y="76" width="70" height="42">
+                <lv_label text="KICK"/>
+            </lv_button>
+
+            <lv_label name="lbl_node_info"
+                      x="10"
+                      y="146"
+                      width="144"
+                      text="Selected drum: SNARE"
+                      style_text_color="0xCBD5E1"/>
+        </lv_obj>
+    </view>
 </screen>

@@ -1,3 +1,16 @@
-<component id="button_set" width="140" height="24" bg_color="#005599" text_color="#FFFFFF" radius="4">
-    <button id="root" x="0" y="0" width="140" height="24" text="SET" />
+<component>
+    <api>
+        <prop name="text" type="string" default="SET"/>
+        <prop name="width" type="int" default="140"/>
+        <prop name="height" type="int" default="24"/>
+    </api>
+
+    <view extends="lv_button"
+          width="$width"
+          height="$height"
+          style_bg_color="0x005599"
+          style_text_color="0xFFFFFF"
+          style_radius="4">
+        <lv_label text="$text"/>
+    </view>
 </component>
