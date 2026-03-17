@@ -1,0 +1,465 @@
+================================================================================
+                            POSITIVE POWER (VCC & LOGIC)
+                            (Positives NEVER touch Ground)
+================================================================================
+
+[Wall 20V (+)] -------> [VIN]
+                        [ IDEAL DIODE 1 ] --- [VOUT] ---+
+                                                        |
+[Batt 14.8V (+)] -----> [VIN]                           |
+                        [ IDEAL DIODE 2 ] --- [VOUT] ---+
+                                                        |
+                                                   [Main Switch]
+                                                        |
+                                                  [40A Main Fuse]
+                                                        |
+                    +-----------------------------------+-------------------+
+                    |                                                       |
+        (Main VCC Input Stud)                                   [Buck Converter IN (+)]
+    [ Nilight 6-Way Fuse Block ]                                            |
+       |  |  |  |  |  |                                                 (5V Out)
+     (Six 10A Blade Fuses)                                                  |
+       |  |  |  |  |  |                                         +-----------+-----------+
+       V  V  V  V  V  V                                         |                       |
+(Outputs to Drums & Sensors)                           [Display 5V VCC]        [6x Voltmeter Red]
+  |
+  +--> [SP13 Pin 1 (Kick)]
+  +--> [Voltmeter 1 Yellow (Sense)]
+  |
+  +--> [SP13 Pin 1 (Snare)]
+  +--> [Voltmeter 2 Yellow (Sense)]
+  |
+  +--> (Repeats for Toms 1-3 & Aux)
+
+
+================================================================================
+                            NEGATIVE POWER (STAR GROUND)
+                            (Everything leads to the center)
+================================================================================
+
+                           [ HEAVY DUTY COPPER BUS BAR ]
+                           [    (MAIN GND JUNCTION)    ]
+                                         |
+[Wall 20V (-)] <-------------------------+
+[Batt 14.8V (-)] <-----------------------+
+[Ideal Diode 1 GND Pad] <----------------+
+[Ideal Diode 2 GND Pad] <----------------+
+[Buck Converter GND IN & OUT] <----------+
+[Display GND] <--------------------------+
+[6x Voltmeter Black Wires] <-------------+
+[6x SP13 Pin 2 (Drum Line GNDs)] <-------+
+
+================================================================================================================================================================
+                      POSITIVE POWER: UPS & SAFETY LOGIC
+================================================================================
+
+[Wall 20V (+)] ------+----------------------------------> [VIN]
+                     |                                    [ IDEAL DIODE 1 ] --- [VOUT] --+
+                     |                                                                   |
+                     V                                                                   |
+          (The Charging Path)                                                            |
+     [ CC/CV Buck Charge Module ]                                                        |
+      (Tuned to 16.8V & 5A Max)                                                          |
+                     |                                                                   |
+                     V                                                                   |
+               [ 4S 40A BMS ]                                                            |
+               (Protection)                                                              |
+                     |                                                                   |
+                     +---> (Bi-directional Charge/Discharge)                             |
+                     |                                                                   |
+            [Batt 14.8V LiPo (+)]                                                        |
+                     |                                                                   |
+                     +----------------------------------> [VIN]                          |
+                                                          [ IDEAL DIODE 2 ] --- [VOUT] --+
+                                                                                         |
+                                                                                    [Main Switch]
+                                                                                         |
+                                                                                  [40A Main Fuse]
+                                                                                         |
+                                                                               (To Fuse Block / VCC Bus)
+
+
+================================================================================
+                      NEGATIVE POWER: STAR GROUND & BMS
+================================================================================
+
+                           [ HEAVY DUTY COPPER BUS BAR ]
+                           [    (MAIN GND JUNCTION)    ]
+                                         |
+[Wall 20V (-)] <-------------------------+
+[Ideal Diode 1 GND] <--------------------+
+[Ideal Diode 2 GND] <--------------------+
+[CC/CV Charge Module GND] <--------------+
+(All other Logic/Drum GNDs) <------------+
+                                         |
+                                         |
+                      [ 4S 40A BMS (P- / Common Ground) ]
+                                         |
+                                         |
+[Batt 14.8V LiPo (-)] <------------------+
+
+================================================================================
+
+
+================================================================================
+                      POSITIVE POWER: UPS & BI-DIRECTIONAL LOGIC
+================================================================================
+
+[Wall 20V (+)] ------+------------------------------------------> [VIN]
+                     |                                            [ IDEAL DIODE 1 ] --- [VOUT] --+
+                     V                                                                           |
+            [ CC/CV Charge Module IN (+) ]                                                       |
+            [ CC/CV Charge Module OUT (+) ]                                                      |
+                     |  (Regulated to 16.8V & 5A Max)                                            |
+                     |                                                                           |
+                     |             <-- [ Current flows IN when 20V Wall is connected ]           |
+                     +-( THE SPLICE )- [ Current flows OUT when 20V Wall is unplugged] -->       |
+                     |                                                                           |
+                     |                                                                           |
+                     +------------------------------------------> [VIN]                          |
+                     |                                            [ IDEAL DIODE 2 ] --- [VOUT] --+
+                     |                                                                           |
+      (Parallel Positive Junction)                                                          [Main Switch]
+         +-----------+-----------+                                                               |
+         |                       |                                                          [40A Main Fuse]
+    [Batt 1 (+)]            [Batt 2 (+)]                                                         |
+                                                                                      (To Fuse Block / VCC Bus)
+
+
+================================================================================
+                      NEGATIVE POWER: BMS & PARALLEL GROUNDS
+================================================================================
+
+                           [ HEAVY DUTY COPPER BUS BAR ]
+                           [    (MAIN GND JUNCTION)    ]
+                                         |
+[Wall 20V (-)] <-------------------------+
+[Ideal Diode 1 GND] <--------------------+
+[Ideal Diode 2 GND] <--------------------+
+[CC/CV Module GNDs] <--------------------+
+(All other Logic/Drum GNDs) <------------+
+                                         |
+                            (Common Port Protection)
+                            [ 4S 40A BMS (P- Pad) ] 
+                            [ 4S 40A BMS (B- Pad) ] 
+                                         |
+      (Parallel Negative Junction)       |
+         +-------------------------------+
+         |                               |
+    [Batt 1 (-)]                    [Batt 2 (-)]
+
+================================================================================
+
+In the diagram, ( THE SPLICE ) is simply a physical junction where three heavy-gauge wires are soldered together:
+
+1. The output wire from the CC/CV Charger.
+2. The input wire to Ideal Diode 2.
+3. The main positive wire coming up from the parallel batteries.
+
+================================================================================
+                      POSITIVE POWER: UPS & SYSTEM METERS
+================================================================================
+
+[Wall 20V (+)] ------+------------------------------------------> [VIN]
+                     |                                            [ IDEAL DIODE 1 ] --- [VOUT] --+
+                     +---> [ Wall Voltmeter Yellow (Sense) ]                                     |
+                     |                                                                           |
+                     V                                                                           |
+            [ CC/CV Charge Module IN (+) ]                                                       |
+            [ CC/CV Charge Module OUT (+) ]                                                      |
+                     |  (Regulated to 16.8V & 5A Max)                                            |
+                     |                                                                           |
+                     +-( THE SPLICE )- [ Bi-Directional Power Flow ]                             |
+                     |                                                                           |
+                     +------------------------------------------> [VIN]                          |
+                     |                                            [ IDEAL DIODE 2 ] --- [VOUT] --+
+                     +---> [ UPS Array Voltmeter Yellow (Sense)]                                 |
+                     |                                                                           |
+      (Parallel Positive Junction)                                                          [Main Switch]
+         +-----------+-----------+                                                               |
+         |                       |                                                          [40A Main Fuse]
+    [Batt 1 (+)]            [Batt 2 (+)]                                                         |
+                                                                                      (To Fuse Block / VCC Bus)
+
+
+================================================================================
+                      NEGATIVE POWER: STAR GROUND 
+================================================================================
+
+                           [ HEAVY DUTY COPPER BUS BAR ]
+                           [    (MAIN GND JUNCTION)    ]
+                                         |
+[Wall 20V (-)] <-------------------------+
+[Wall Voltmeter Black (GND)] <-----------+
+[UPS Array Voltmeter Black (GND)] <------+
+[Ideal Diode 1 & 2 GNDs] <---------------+
+[CC/CV Module GNDs] <--------------------+
+(All other Logic/Drum GNDs) <------------+
+                                         |
+                            [ 4S 40A BMS (P- Pad) ] 
+                            [ 4S 40A BMS (B- Pad) ] 
+                                         |
+      (Parallel Negative Junction)       |
+         +-------------------------------+
+         |                               |
+    [Batt 1 (-)]                    [Batt 2 (-)]
+
+================================================================================
+
+Here is your final, tour-grade Master Brain hardware schematic.
+
+By replacing the raw battery voltmeter with the 4S Capacity Indicator, you now have a foolproof "Fuel Gauge" that taps directly into the parallel battery junction.
+
+Final Master Brain Schematic: Power & Telemetry
+
+================================================================================
+                      POSITIVE POWER: UPS & SYSTEM METERS
+================================================================================
+
+[Wall 20V (+)] ------+------------------------------------------> [VIN]
+                     |                                            [ IDEAL DIODE 1 ] --- [VOUT] --+
+                     +---> [ Wall Voltmeter Yellow (Sense) ]                                     |
+                     |     (Reads 20.0V when plugged in)                                         |
+                     V                                                                           |
+            [ CC/CV Charge Module IN (+) ]                                                       |
+            [ CC/CV Charge Module OUT (+) ]                                                      |
+                     |  (Regulated to 16.8V & 5A Max)                                            |
+                     |                                                                           |
+                     +-( THE SPLICE )- [ Bi-Directional Power Flow ]                             |
+                     |                                                                           |
+                     +------------------------------------------> [VIN]                          |
+                     |                                            [ IDEAL DIODE 2 ] --- [VOUT] --+
+                     +---> [ 4S Capacity "Fuel Gauge" (Red) ]                                    |
+                     |     (Reads 0-100% Battery Life)                                           |
+                     |                                                                           |
+      (Parallel Positive Junction)                                                          [Main Switch]
+         +-----------+-----------+                                                               |
+         |                       |                                                          [40A Main Fuse]
+    [Batt 1 (+)]            [Batt 2 (+)]                                                         |
+                                                                                      (To Fuse Block / VCC Bus)
+
+
+================================================================================
+                      NEGATIVE POWER: STAR GROUND 
+================================================================================
+
+                           [ HEAVY DUTY COPPER BUS BAR ]
+                           [    (MAIN GND JUNCTION)    ]
+                                         |
+[Wall 20V (-)] <-------------------------+
+[Wall Voltmeter Black (GND)] <-----------+
+[4S Capacity Indicator (Black)] <--------+
+[Ideal Diode 1 & 2 GNDs] <---------------+
+[CC/CV Module GNDs] <--------------------+
+(All other Logic/Drum GNDs) <------------+
+                                         |
+                            [ 4S 40A BMS (P- Pad) ] 
+                            [ 4S 40A BMS (B- Pad) ] 
+                                         |
+      (Parallel Negative Junction)       |
+         +-------------------------------+
+         |                               |
+    [Batt 1 (-)]                    [Batt 2 (-)]
+
+================================================================================
+
+================================================================================
+                      POSITIVE POWER: UPS & SYSTEM METERS
+================================================================================
+
+[Wall 20V (+)] ------+------------------------------------------> [VIN]
+                     |                                            [ IDEAL DIODE 1 ] --- [VOUT] --+
+                     +---> [ Wall Voltmeter Yellow (Sense) ]                                     |
+                     |     (Reads 20.0V when plugged in)                                         |
+                     V                                                                           |
+            [ CC/CV Charge Module IN (+) ]                                                       |
+            [ CC/CV Charge Module OUT (+) ]                                                      |
+                     |  (Regulated to 16.8V & 5A Max)                                            |
+                     |                                                                           |
+                     +-( THE SPLICE )- [ Bi-Directional Power Flow ]                             |
+                     |                                                                           |
+                     +------------------------------------------> [VIN]                          |
+                     |                                            [ IDEAL DIODE 2 ] --- [VOUT] --+
+                     +---> [ 4S Capacity "Fuel Gauge" (Red) ]                                    |
+                     |     (Reads 0-100% Battery Life)                                           |
+                     |                                                                           |
+      (Parallel Positive Junction)                                        (Illuminated Main Switch)
+         +-----------+-----------+                                        [ Pin 1: Power IN  ] <-+
+         |                       |                                        [ Pin 2: Power OUT ] ----> [40A Main Fuse]
+    [Batt 1 (+)]            [Batt 2 (+)]                                  [ Pin 3: LED GND   ]             |
+                                                                                   |               (To Fuse Block / VCC Bus)
+                                                                            (To Star Ground)
+
+
+================================================================================
+                      NEGATIVE POWER: STAR GROUND 
+================================================================================
+
+                           [ HEAVY DUTY COPPER BUS BAR ]
+                           [    (MAIN GND JUNCTION)    ]
+                                         |
+[Wall 20V (-)] <-------------------------+
+[Wall Voltmeter Black (GND)] <-----------+
+[4S Capacity Indicator (Black)] <--------+
+[Main Switch LED (Pin 3 GND)] <----------+  <-- (Completes the switch's LED circuit)
+[Ideal Diode 1 & 2 GNDs] <---------------+
+[CC/CV Module GNDs] <--------------------+
+(All other Logic/Drum GNDs) <------------+
+                                         |
+                            [ 4S 40A BMS (P- Pad) ] 
+                            [ 4S 40A BMS (B- Pad) ] 
+                                         |
+      (Parallel Negative Junction)       |
+         +-------------------------------+
+         |                               |
+    [Batt 1 (-)]                    [Batt 2 (-)]
+
+================================================================================
+
+================================================================================
+                      POSITIVE POWER: UPS, TELEMETRY & LOGIC
+================================================================================
+
+[Wall 20V (+)] ------+------------------------------------------> [VIN]
+                     |                                            [ IDEAL DIODE 1 ] --- [VOUT] --+
+                     +---> [ Wall Voltmeter Yellow (Sense) ]                                     |
+                     |                                                                           |
+                     V                                                                           |
+           [ 300W CC/CV Charge Module IN (+) ]                                                   |
+           [ 300W CC/CV Charge Module OUT (+) ]                                                  |
+                     |  (Regulated to 16.8V & 5A Max)                                            |
+                     |                                                                           |
+                     +-( THE SPLICE )- [ Bi-Directional Power Flow ]                             |
+                     |                                                                           |
+                     +------------------------------------------> [VIN]                          |
+                     |                                            [ IDEAL DIODE 2 ] --- [VOUT] --+
+                     +---> [ 4S Capacity "Fuel Gauge" (Red) ]                                    |
+                     |                                                                           |
+      (Parallel Positive Junction)                                      (24V Illuminated Switch) |
+         +-----------+-----------+                                        [ Pin 1: Power IN  ] <-+
+         |                       |                                        [ Pin 2: Power OUT ] ----> [40A Main Fuse]
+    [Batt 1 (+)]            [Batt 2 (+)]                                  [ Pin 3: LED GND   ]             |
+                                                                                   |                       |
+                                                                            (To Star Ground)               |
+                                                                                                           V
+                                                                  +----------------------------------------+
+                                                                  |
+                                                                  +---> [ Buck Converter IN (+) ]
+                                                                  |       |
+                                                                  |     (5V OUT Logic Rail)
+                                                                  |       +---> [ ESP32-S3 Display VCC ]
+                                                                  |       +---> [ All 8x Voltmeter Reds ]
+                                                                  |
+                                                                  V
+                                                        (Main VCC Input Stud)
+                                                    [ Nilight 6-Way Fuse Block ]
+                                                       |  |  |  |  |  |
+                                                     (Six 10A Blade Fuses)
+                                                       |  |  |  |  |  |
+                                                       V  V  V  V  V  V
+                                                (Outputs to Drums & Sensors)
+                                                  |
+                                                  +--> [SP13 Pin 1 (Kick)]
+                                                  +--> [Drum 1 Voltmeter Yellow (Sense)]
+                                                  |
+                                                  +--> (Repeats for Snare, Toms, Aux)
+
+
+================================================================================
+                      NEGATIVE POWER: BMS & STAR GROUND
+================================================================================
+
+                           [ HEAVY DUTY COPPER BUS BAR ]
+                           [    (MAIN GND JUNCTION)    ]
+                                         |
+[Wall 20V (-)] <-------------------------+
+[Wall Voltmeter Black (GND)] <-----------+
+[4S Capacity Indicator (Black)] <--------+
+[All 6x Drum Voltmeter Blacks] <---------+
+[Main Switch LED (Pin 3 GND)] <----------+
+[Ideal Diode 1 & 2 GNDs] <---------------+
+[300W CC/CV Module GNDs] <---------------+
+[Buck Converter GND IN & OUT] <----------+
+[ESP32-S3 Display GND] <-----------------+
+[All 6x SP13 Pin 2 (Drum GNDs)] <--------+
+                                         |
+                                         |
+                            (Common Port Protection)
+                            [ Daly 4S 40A BMS (P- Pad) ] 
+                            [ Daly 4S 40A BMS (B- Pad) ] 
+                                         |
+      (Parallel Negative Junction)       |
+         +-------------------------------+
+         |                               |
+    [Batt 1 (-)]                    [Batt 2 (-)]
+
+================================================================================
+
+================================================================================
+                      NEGATIVE POWER: BMS & STAR GROUND
+================================================================================
+
+                           [ HEAVY DUTY COPPER BUS BAR ]
+                           [    (MAIN GND JUNCTION)    ]
+                                         |
+(All other Logic/Drum GNDs) <------------+
+                                         |
+                                         |
+                            (Common Port Protection)
+                            [ Daly 4S 40A BMS (P- Pad) ]  <-- Connects to Star Ground
+                            [ Daly 4S 40A BMS (B- Pad) ]  <-- Connects to Batteries
+                                         |
+      (Parallel Negative Junction)       |
+         +-------------------------------+
+         |                               |
+    [Batt 1 (-)]                    [Batt 2 (-)]
+
+================================================================================
+
+
+
+
+
+
+
+================================================================================
+                      DRUM NODE: POWER DOWN-CONVERSION
+================================================================================
+
+(From Core Node)
+[ SP13 Panel Mount ]
+  [ Pin 1 (14.8V-20V) ] ----------------> [ VIN (+) ]
+                                      [ Drum Buck Converter ]  
+                                          [ VOUT (+) ]
+                                               |
+                                               +-----> [ LED Strip VCC (+) ]
+                                               |
+                                               +-----> [ XIAO ESP32-S3 (5V Pin) ]
+
+  [ Pin 2 (GND) ] -------+--------------> [ GND (-) ]
+                         |
+                 (Node Star Ground)
+                         +---------------------------> [ LED Strip GND (-) ]
+                         +---------------------------> [ XIAO ESP32-S3 (GND) ]
+                         +---------------------------> [ Piezo Sensor (-) ]
+
+
+================================================================================
+                      DRUM NODE: SENSORS & DATA LOGIC
+================================================================================
+
+(The Piezo Hit Detection)
+[ Piezo Sensor (+) ] -------+-------+----------------> [ XIAO Analog In (e.g., A0) ]
+                            |       |
+                        [ 1MΩ ]     |   <-- [ Cathode (Stripe End) ]
+                        (Bleed) [ 3.3V Zener ]  (Acts as a 3.3V pressure valve)
+                            |       |   <-- [ Anode (Blank End) ]
+[ Piezo Sensor (-) ] -------+-------+
+                            |
+                    (Node Star Ground)
+
+
+(The LED Data Line)
+[ XIAO GPIO Out ] ------ [ 330Ω Resistor ] ----------> [ LED Strip Data (DIN) ]
+
+================================================================================
