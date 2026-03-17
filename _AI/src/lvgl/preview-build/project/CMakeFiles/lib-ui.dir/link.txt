@@ -1,0 +1,2 @@
+/emsdk/upstream/emscripten/emar qc liblib-ui.a CMakeFiles/lib-ui.dir/lv_editor_runtime_stub.c.o
+/emsdk/upstream/emscripten/emranlib liblib-ui.a
