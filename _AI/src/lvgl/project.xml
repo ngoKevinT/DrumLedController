@@ -1,5 +1,3 @@
 <project name="drum_led_controller">
-    <displays>
-        <display name="main" width="320" height="170"/>
-    </displays>
+    <display name="main" width="320" height="170"/>
 </project>
