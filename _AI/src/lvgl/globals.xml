@@ -12,7 +12,7 @@
     </styles>
 
     <subjects>
-        <!-- Add <int>, <string>, or <float> subjects here -->
+        <int name="hello_count" value="0"/>
     </subjects>
 
     <images>

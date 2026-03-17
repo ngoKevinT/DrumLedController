@@ -9,8 +9,7 @@
           width="$width"
           height="$height"
           style_bg_color="0x334155"
-          style_text_color="0xE5E7EB"
           style_radius="4">
-        <lv_label text="$text"/>
+        <lv_label text="$text" style_text_color="0xE5E7EB"/>
     </view>
 </component>

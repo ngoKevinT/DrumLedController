@@ -1,0 +1,43 @@
+<screen>
+    <view width="1024" height="600" style_bg_color="0x0B1220">
+        <lv_obj name="card"
+                x="272"
+                y="120"
+                width="480"
+                height="320"
+                style_bg_color="0x162033"
+                style_border_width="0"
+                style_radius="8">
+            <lv_label name="title"
+                      x="156"
+                      y="36"
+                      text="Hello World"
+                      style_text_color="0xE2E8F0"/>
+
+            <lv_label name="subtitle"
+                      x="83"
+                      y="86"
+                      width="314"
+                      text="Native LVGL objects with subject binding"
+                      style_text_color="0x93C5FD"/>
+
+            <lv_button name="btn_count"
+                       x="110"
+                       y="150"
+                       width="260"
+                       height="72"
+                       style_bg_color="0x1D4ED8"
+                       style_radius="6">
+                <subject_increment_event trigger="clicked" subject="hello_count" step="1"/>
+                <lv_label bind_text="hello_count" bind_text-fmt="Count: %d" style_text_color="0xFFFFFF"/>
+            </lv_button>
+
+            <lv_label name="hint"
+                      x="119"
+                      y="246"
+                      width="242"
+                      text="Click the button to increment"
+                      style_text_color="0xCBD5E1"/>
+        </lv_obj>
+    </view>
+</screen>
