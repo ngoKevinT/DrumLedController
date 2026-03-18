@@ -1,7 +1,7 @@
 idf_component_register(
     SRCS "main.c"
     INCLUDE_DIRS "."
-    REQUIRES ui lvgl_port rgb_lcd_port touch
+    REQUIRES ui lvgl_port rgb_lcd_port touch spiffs
     WHOLE_ARCHIVE
 )
 

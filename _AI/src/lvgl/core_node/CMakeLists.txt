@@ -16,3 +16,7 @@ include_directories($ENV{IDF_PATH}/components/esp_system/include)
 add_compile_options("-Wno-attributes")
 
 project(core_node_ui)
+
+# Build a SPIFFS image from spiffs_data/ and flash it automatically with
+# `idf.py flash`. The partition size (5M) must match partitions.csv.
+spiffs_create_partition_image(spiffs spiffs_data FLASH_IN_PROJECT)

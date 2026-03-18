@@ -28,10 +28,16 @@
  *   Pixel budget check (inner h = 568):
  *     Content : 120 + 120 + 80 + 64 + 80 = 464 px
  *     Gaps    : (568 − 464) / 4           = 26 px each  ✓
+ *
+ *   Bottom-right overlay (on top of wallpaper, right half):
+ *     Two 64×64 icon buttons, 12px from bottom-right corner.
+ *     Global Settings  → "S:/settings.png"
+ *     Drum Settings    → "S:/settings_drum.png"
  *****************************************************************************/
 
 #include "lvgl.h"
 #include "ui_main.h"
+#include "ui.h"
 
 // ---------------------------------------------------------------------------
 // Module state
@@ -88,6 +94,26 @@ static void cb_sync       (lv_event_t *e) { lv_label_set_text(lbl_status, "SYNC"
 static void cb_prev       (lv_event_t *e) { lv_label_set_text(lbl_status, LV_SYMBOL_LEFT " PREV");  }
 static void cb_set        (lv_event_t *e) { lv_label_set_text(lbl_status, "SET");         }
 static void cb_next       (lv_event_t *e) { lv_label_set_text(lbl_status, "NEXT " LV_SYMBOL_RIGHT); }
+static void cb_global_settings(lv_event_t *e) { ui_navigate_to(UI_SCREEN_GLOBAL_SETTINGS); }
+static void cb_drum_settings  (lv_event_t *e) { ui_navigate_to(UI_SCREEN_DRUM_SETTINGS);   }
+
+// ---------------------------------------------------------------------------
+// Screen construction — wallpaper background
+// ---------------------------------------------------------------------------
+
+static void build_background(lv_obj_t *screen, const lv_img_dsc_t *bg_dsc)
+{
+    if (!bg_dsc) return;   // nothing to draw if preload failed
+
+    lv_obj_t *bg = lv_img_create(screen);
+    // Passing a pointer (not a "S:/..." string) makes LVGL treat the image as a
+    // RAM-resident C-array descriptor — no FS seek, no decode overhead.
+    lv_img_set_src(bg, bg_dsc);
+    lv_obj_set_pos(bg, 0, 0);
+    lv_obj_set_size(bg, 1024, 600);
+    lv_img_set_zoom(bg, 256);
+    lv_obj_clear_flag(bg, LV_OBJ_FLAG_SCROLLABLE);
+}
 
 // ---------------------------------------------------------------------------
 // Screen construction — left panel
@@ -107,6 +133,7 @@ static void build_left_panel(lv_obj_t *screen)
     lv_obj_set_size(left, 512, 600);
     lv_obj_set_style_radius(left, 0, 0);
     lv_obj_set_style_border_width(left, 0, 0);
+    lv_obj_set_style_bg_opa(left, LV_OPA_TRANSP, 0);
     lv_obj_set_style_pad_all(left, 16, 0);
     lv_obj_clear_flag(left, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_set_layout(left, LV_LAYOUT_FLEX);
@@ -192,7 +219,7 @@ static void build_left_panel(lv_obj_t *screen)
 }
 
 // ---------------------------------------------------------------------------
-// Screen construction — right panel (placeholder)
+// Screen construction — right panel (placeholder, transparent)
 // ---------------------------------------------------------------------------
 
 static void build_right_panel(lv_obj_t *screen)
@@ -202,23 +229,68 @@ static void build_right_panel(lv_obj_t *screen)
     lv_obj_set_size(right, 512, 600);
     lv_obj_set_style_radius(right, 0, 0);
     lv_obj_set_style_border_width(right, 0, 0);
+    lv_obj_set_style_bg_opa(right, LV_OPA_TRANSP, 0);
     lv_obj_clear_flag(right, LV_OBJ_FLAG_SCROLLABLE);
 
     lv_obj_t *lbl = lv_label_create(right);
     lv_label_set_text(lbl, "Drum Monitor\n(WIP)");
     lv_obj_set_style_text_font(lbl, &lv_font_montserrat_20, 0);
+    lv_obj_set_style_text_color(lbl, lv_color_white(), 0);
     lv_obj_center(lbl);
+}
+
+// ---------------------------------------------------------------------------
+// Screen construction — nav overlay buttons (bottom-right)
+//
+// Two 64×64 icon buttons anchored 12px from the bottom-right corner.
+// They sit above all other content (added last) and navigate to settings.
+// ---------------------------------------------------------------------------
+
+static lv_obj_t *make_icon_btn(lv_obj_t *parent, const char *img_src, lv_event_cb_t cb)
+{
+    lv_obj_t *btn = lv_btn_create(parent);
+    lv_obj_set_size(btn, 64, 64);
+    lv_obj_set_style_pad_all(btn, 4, 0);
+    lv_obj_set_style_radius(btn, 8, 0);
+    lv_obj_add_event_cb(btn, cb, LV_EVENT_CLICKED, NULL);
+
+    lv_obj_t *img = lv_img_create(btn);
+    lv_img_set_src(img, img_src);
+    lv_obj_center(img);
+
+    return btn;
+}
+
+static void build_nav_overlay(lv_obj_t *screen)
+{
+    // Container anchored to bottom-right, holding the two icon buttons side by side.
+    lv_obj_t *bar = make_container(screen);
+    lv_obj_set_size(bar, 148, 64);   // 64 + 20 gap + 64 = 148
+    lv_obj_align(bar, LV_ALIGN_BOTTOM_RIGHT, -12, -12);
+    lv_obj_set_layout(bar, LV_LAYOUT_FLEX);
+    lv_obj_set_flex_flow(bar, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(bar,
+        LV_FLEX_ALIGN_SPACE_BETWEEN,
+        LV_FLEX_ALIGN_CENTER,
+        LV_FLEX_ALIGN_CENTER);
+
+    make_icon_btn(bar, "S:/settings_drum.png", cb_drum_settings);
+    make_icon_btn(bar, "S:/settings.png",      cb_global_settings);
 }
 
 // ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
 
-void ui_main_init(void)
+void ui_main_init(const lv_img_dsc_t *bg)
 {
     scr_main = lv_obj_create(NULL);
+    lv_obj_set_style_pad_all(scr_main, 0, 0);
+
+    build_background(scr_main, bg);
     build_left_panel(scr_main);
     build_right_panel(scr_main);
+    build_nav_overlay(scr_main);
 }
 
 lv_obj_t *ui_main_get_screen(void)

@@ -11,6 +11,7 @@
  *****************************************************************************/
 
 #include "esp_log.h"
+#include "esp_spiffs.h"
 #include "rgb_lcd_port.h"   // waveshare_esp32_s3_rgb_lcd_init(), wavesahre_rgb_lcd_bl_on()
 #include "gt911.h"          // touch_gt911_init()
 #include "lvgl_port.h"      // lvgl_port_init(), lvgl_port_lock(), lvgl_port_unlock()
@@ -18,10 +19,30 @@
 
 static const char *TAG = "main";
 
+static void spiffs_init(void)
+{
+    esp_vfs_spiffs_conf_t conf = {
+        .base_path              = "/spiffs",
+        .partition_label        = NULL,   // uses first SPIFFS partition found
+        .max_files              = 8,
+        .format_if_mount_failed = false,
+    };
+    esp_err_t ret = esp_vfs_spiffs_register(&conf);
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "SPIFFS mount failed (%s)", esp_err_to_name(ret));
+    } else {
+        ESP_LOGI(TAG, "SPIFFS mounted at /spiffs");
+    }
+}
+
 void app_main(void)
 {
     static esp_lcd_panel_handle_t panel_handle = NULL;
     static esp_lcd_touch_handle_t tp_handle    = NULL;
+
+    // Mount SPIFFS before LVGL so image assets are available when ui_create()
+    // calls lv_img_set_src() with "S:/..." paths.
+    spiffs_init();
 
     // Touch must be initialised before the LCD so the GT911 INT pin level
     // sets the correct I2C address (0x5D) before the panel comes up.
@@ -39,6 +60,7 @@ void app_main(void)
 
     // All LVGL API calls must be made while holding the port mutex.
     if (lvgl_port_lock(-1)) {
+        lv_fs_stdio_init();   // register drive 'S' → /spiffs
         ui_create();
         lvgl_port_unlock();
     }
