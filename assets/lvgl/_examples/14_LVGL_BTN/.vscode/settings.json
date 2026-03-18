@@ -1,0 +1,12 @@
+{
+    "files.associations": {
+        "gui_paint.h": "c",
+        "gt911.h": "c",
+        "gui_bmp.h": "c",
+        "lvgl_port.h": "c",
+        "lvgl_demo.h": "c"
+    },
+    "idf.portWin": "COM9",
+    "idf.adapterTargetName": "esp32s3",
+    "idf.flashType": "UART"
+}

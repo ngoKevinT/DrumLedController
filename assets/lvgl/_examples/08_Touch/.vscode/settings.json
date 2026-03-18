@@ -1,0 +1,11 @@
+{
+    "files.associations": {
+        "gt911.h": "c",
+        "rgb_lcd_port.h": "c",
+        "touch.h": "c",
+        "io_extension.h": "c",
+        "i2c.h": "c"
+    },
+    "idf.portWin": "COM9",
+    "idf.adapterTargetName": "esp32s3"
+}

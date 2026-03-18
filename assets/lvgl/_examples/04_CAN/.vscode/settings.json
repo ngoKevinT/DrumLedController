@@ -1,0 +1,9 @@
+{
+    "idf.adapterTargetName": "esp32s3",
+    "idf.portWin": "COM9",
+    "files.associations": {
+        "can.h": "c",
+        "ch422g.h": "c",
+        "i2c.h": "c"
+    }
+}

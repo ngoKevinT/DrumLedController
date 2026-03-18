@@ -1,9 +1,0 @@
-dependencies:
-  idf:
-    version: ">=5.1.0"
-  lvgl/lvgl:
-    # Pin to LVGL 8.x — the lvgl_port component is written against this API.
-    version: ">8.3.9,<9"
-    # Use the local copy from the Waveshare example instead of downloading from registry.
-    # Path is relative to this file (main/idf_component.yml).
-    override_path: "../../_examples/13_LVGL_TRANSPLANT/components/lvgl_port/lvgl__lvgl"

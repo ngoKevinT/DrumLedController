@@ -1,0 +1,10 @@
+{
+    "idf.portWin": "COM23",
+    "idf.adapterTargetName": "esp32s3",
+    "idf.customExtraVars": {
+        "OPENOCD_SCRIPTS": "F:\\esp\\v5.3-dev\\Espressif\\tools\\openocd-esp32\\v0.12.0-esp32-20230921/openocd-esp32/share/openocd/scripts",
+        "IDF_CCACHE_ENABLE": "1",
+        "ESP_ROM_ELF_DIR": "F:\\esp\\v5.3-dev\\Espressif\\tools\\esp-rom-elfs\\20230320/",
+        "IDF_TARGET": "esp32s3"
+    }
+}

@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "wifi.h": "c"
+    },
+    "idf.portWin": "COM9"
+}

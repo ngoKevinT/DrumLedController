@@ -1,0 +1,30 @@
+{
+    "files.associations": {
+        "ui.h": "c",
+        "xutility": "c",
+        "tuple": "c",
+        "utility": "c",
+        "wifi.h": "c",
+        "rgb_lcd_port.h": "c",
+        "lvgl_port.h": "c",
+        "vector": "c",
+        "xstring": "c",
+        "type_traits": "c",
+        "xtr1common": "c",
+        "sd_card.h": "c",
+        "sd.h": "c",
+        "stat.h": "c",
+        "io_extension.h": "c"
+    },
+    "cmake.sourceDirectory": "/192.168.10.82/hsw/esp/ESP32-S3-Touch-LCD-4.3_Code/xutong/ESP-IDF/13_lvgl_ui",
+    "idf.portWin": "COM9",
+    "idf.customExtraVars": {
+        "OPENOCD_SCRIPTS": "F:\\esp\\v5.3-dev\\Espressif\\tools\\openocd-esp32\\v0.12.0-esp32-20230921/openocd-esp32/share/openocd/scripts",
+        "IDF_CCACHE_ENABLE": "1",
+        "ESP_ROM_ELF_DIR": "F:\\esp\\v5.3-dev\\Espressif\\tools\\esp-rom-elfs\\20230320/",
+        "IDF_TARGET": "esp32s3"
+    },
+    "idf.openOcdConfigs": [
+        "board/esp32s3-builtin.cfg"
+    ]
+}
