@@ -1,0 +1,13 @@
+{
+    "idf.currentSetup": "C:\\Users\\ngoke\\esp\\v5.5.1\\esp-idf",
+    "cmake.configureOnOpen": false,
+    "cmake.autoConfigureOnEdit": false,
+    "idf.openOcdConfigs": [
+        "board/esp32s3-builtin.cfg"
+    ],
+    "idf.customExtraVars": {
+        "IDF_TARGET": "esp32s3"
+    },
+    "idf.portWin": "COM5",
+    "idf.flashType": "UART"
+}

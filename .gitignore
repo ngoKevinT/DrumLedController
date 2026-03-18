@@ -5,3 +5,4 @@ _AI/tools/lvgl-cli/LVGL_Pro_CLI-nightly-windows.zip
 _AI/tools/lvgl-cli/LVGL_Pro_VSCode-nightly-win32-x64.zip
 _AI/tools/lvgl-cli/jsdom-pack/jsdom-28.1.0.tgz
 _AI/src/lvgl/_examples/*
+_AI/src/lvgl/core_node/build/*

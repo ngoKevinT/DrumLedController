@@ -1,0 +1,17 @@
+dependencies:
+  idf:
+    source:
+      type: idf
+    version: 5.5.1
+  lvgl/lvgl:
+    dependencies: []
+    source:
+      path: C:\Users\ngoke\Documents\_Workspace\DrumLedController\_AI\src\lvgl\_examples\13_LVGL_TRANSPLANT\components\lvgl_port\lvgl__lvgl
+      type: local
+    version: 8.4.0
+direct_dependencies:
+- idf
+- lvgl/lvgl
+manifest_hash: 14db3de05af716827dfe8d0388d0a14a1de14b0295cc2033ec9efcc1b8652b12
+target: esp32s3
+version: 2.0.0

@@ -1,0 +1,12 @@
+# Name,   Type, SubType, Offset,  Size, Flags
+# Note: if you have increased the bootloader size, make sure to update the offsets to avoid overlap
+#
+# Layout for Waveshare ESP32-S3-Touch-LCD-7B (16 MB flash)
+#   0x0000  –  0x8FFF  : Bootloader  (ESP-IDF managed)
+#   0x9000  –  0xEFFF  : NVS         (24 KB)
+#   0xF000  –  0xFFFF  : PHY init    (4 KB)
+#   0x10000 –  end     : App factory (8 MB)
+#
+nvs,      data, nvs,     0x9000,  0x6000,
+phy_init, data, phy,     0xf000,  0x1000,
+factory,  app,  factory, 0x10000, 8M,
