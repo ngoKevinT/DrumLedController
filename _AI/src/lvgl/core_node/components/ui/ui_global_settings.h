@@ -15,3 +15,11 @@ void ui_global_settings_init(const lv_img_dsc_t *bg);
  * Valid after ui_global_settings_init() has been called.
  */
 lv_obj_t *ui_global_settings_get_screen(void);
+
+/**
+ * @brief Sync all widgets to current g_drums[g_selected_drum] and global state.
+ *
+ * Call before navigating to this screen so the sliders and toggle reflect the
+ * latest values.  Must be called while the LVGL port mutex is held.
+ */
+void ui_global_settings_refresh(void);

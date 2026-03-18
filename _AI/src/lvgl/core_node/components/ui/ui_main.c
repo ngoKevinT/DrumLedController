@@ -46,6 +46,7 @@
 #include "lvgl.h"
 #include "ui_main.h"
 #include "ui_drum_settings.h"
+#include "ui_global_settings.h"
 #include "ui.h"
 
 // ---------------------------------------------------------------------------
@@ -122,7 +123,11 @@ static void cb_sync       (lv_event_t *e) { lv_label_set_text(lbl_status, "SYNC"
 static void cb_prev       (lv_event_t *e) { lv_label_set_text(lbl_status, LV_SYMBOL_LEFT " PREV");  }
 static void cb_set        (lv_event_t *e) { lv_label_set_text(lbl_status, "SET");         }
 static void cb_next       (lv_event_t *e) { lv_label_set_text(lbl_status, "NEXT " LV_SYMBOL_RIGHT); }
-static void cb_global_settings(lv_event_t *e) { ui_navigate_to(UI_SCREEN_GLOBAL_SETTINGS); }
+static void cb_global_settings(lv_event_t *e)
+{
+    ui_global_settings_refresh();
+    ui_navigate_to(UI_SCREEN_GLOBAL_SETTINGS);
+}
 static void cb_drum_settings(lv_event_t *e)
 {
     // Refresh the drum settings screen with the currently selected drum's data

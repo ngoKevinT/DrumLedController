@@ -32,15 +32,48 @@ static const char *TAG = "ui";
 // ---------------------------------------------------------------------------
 
 ui_drum_t g_drums[UI_MAX_DRUMS] = {
-    { .name="Kick",  .color=0xFF2200, .mode_idx=1, .threshold=150, .reading=0, .connected=true  },
-    { .name="Snare", .color=0x0044FF, .mode_idx=0, .threshold=200, .reading=0, .connected=true  },
-    { .name="Tom 1", .color=0x00FF44, .mode_idx=2, .threshold=100, .reading=0, .connected=false },
-    { .name="Tom 2", .color=0xFF8800, .mode_idx=3, .threshold=175, .reading=0, .connected=false },
-    { .name="Tom 3", .color=0xFF00CC, .mode_idx=1, .threshold=160, .reading=0, .connected=false },
-    { .name="Tom 4", .color=0x00CCFF, .mode_idx=4, .threshold=120, .reading=0, .connected=false },
+    {
+        .name="Kick",   .connected=true,
+        .threshold=150, .reading=0, .retrigger_ms=30,  .hit_curve=HIT_CURVE_LINEAR,
+        .color=0xFF2200, .mode_idx=1, .idle_brightness=20, .flash_brightness=100,
+        .flash_time_ms=150, .decay_time_ms=300,
+    },
+    {
+        .name="Snare",  .connected=true,
+        .threshold=200, .reading=0, .retrigger_ms=25,  .hit_curve=HIT_CURVE_LINEAR,
+        .color=0x0044FF, .mode_idx=0, .idle_brightness=15, .flash_brightness=100,
+        .flash_time_ms=120, .decay_time_ms=250,
+    },
+    {
+        .name="Tom 1",  .connected=false,
+        .threshold=100, .reading=0, .retrigger_ms=40,  .hit_curve=HIT_CURVE_LOG,
+        .color=0x00FF44, .mode_idx=2, .idle_brightness=10, .flash_brightness=80,
+        .flash_time_ms=200, .decay_time_ms=400,
+    },
+    {
+        .name="Tom 2",  .connected=false,
+        .threshold=175, .reading=0, .retrigger_ms=40,  .hit_curve=HIT_CURVE_LOG,
+        .color=0xFF8800, .mode_idx=3, .idle_brightness=10, .flash_brightness=80,
+        .flash_time_ms=200, .decay_time_ms=400,
+    },
+    {
+        .name="Tom 3",  .connected=false,
+        .threshold=160, .reading=0, .retrigger_ms=40,  .hit_curve=HIT_CURVE_EXP,
+        .color=0xFF00CC, .mode_idx=1, .idle_brightness=10, .flash_brightness=90,
+        .flash_time_ms=180, .decay_time_ms=350,
+    },
+    {
+        .name="Tom 4",  .connected=false,
+        .threshold=120, .reading=0, .retrigger_ms=35,  .hit_curve=HIT_CURVE_LINEAR,
+        .color=0x00CCFF, .mode_idx=4, .idle_brightness=10, .flash_brightness=85,
+        .flash_time_ms=160, .decay_time_ms=300,
+    },
 };
 
 int g_selected_drum = 0;
+
+uint8_t g_master_brightness = 80;   // default 80 %
+bool    g_power_limit_3a    = false;
 
 const char *const ui_mode_names[UI_NUM_MODES] = {
     "SOLID", "PULSE", "STROBE", "RAINBOW", "CHASE", "BOUNCE", "CUSTOM"
