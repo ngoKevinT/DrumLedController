@@ -27,6 +27,26 @@
 static const char *TAG = "ui";
 
 // ---------------------------------------------------------------------------
+// Shared drum state — placeholder data for UI layout development.
+// Replace with BLE/ESP-NOW telemetry once the comms layer is wired up.
+// ---------------------------------------------------------------------------
+
+ui_drum_t g_drums[UI_MAX_DRUMS] = {
+    { .name="Kick",  .color=0xFF2200, .mode_idx=1, .threshold=150, .reading=0, .connected=true  },
+    { .name="Snare", .color=0x0044FF, .mode_idx=0, .threshold=200, .reading=0, .connected=true  },
+    { .name="Tom 1", .color=0x00FF44, .mode_idx=2, .threshold=100, .reading=0, .connected=false },
+    { .name="Tom 2", .color=0xFF8800, .mode_idx=3, .threshold=175, .reading=0, .connected=false },
+    { .name="Tom 3", .color=0xFF00CC, .mode_idx=1, .threshold=160, .reading=0, .connected=false },
+    { .name="Tom 4", .color=0x00CCFF, .mode_idx=4, .threshold=120, .reading=0, .connected=false },
+};
+
+int g_selected_drum = 0;
+
+const char *const ui_mode_names[UI_NUM_MODES] = {
+    "SOLID", "PULSE", "STROBE", "RAINBOW", "CHASE", "BOUNCE", "CUSTOM"
+};
+
+// ---------------------------------------------------------------------------
 // PSRAM wallpaper loader
 // ---------------------------------------------------------------------------
 

@@ -15,3 +15,19 @@ void ui_main_init(const lv_img_dsc_t *bg);
  * Valid after ui_main_init() has been called.
  */
 lv_obj_t *ui_main_get_screen(void);
+
+/**
+ * @brief Refresh the visual state of one drum card from g_drums[idx].
+ *
+ * Call after writing new telemetry into g_drums[idx].
+ * Must be called while the LVGL port mutex is held.
+ */
+void ui_main_drum_update(int idx);
+
+/**
+ * @brief Flash card[idx] to the drum's LED color for 300ms then restore.
+ *
+ * Safe to call on rapid successive hits — any in-progress flash is cancelled
+ * and restarted.  Must be called while the LVGL port mutex is held.
+ */
+void ui_main_drum_flash(int idx);
