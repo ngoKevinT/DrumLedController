@@ -20,9 +20,15 @@ Since you'll have two of these (one for Battery, one for External DC), and they 
 * **The Mount:** Bolt them directly to a small aluminum finned heatsink inside the Core Node’s electronics bay.
 * **The Insulation:** Use a **Sil-Pad** or mica insulator between the diode and the heatsink if the heatsink is shared, as the "Tab" of these diodes is usually connected to the Cathode (output).
 
+### References ###
+- https://www.waveshare.com/wiki/ESP32-S3-Touch-LCD-7B
+- https://docs.lvgl.io/master/index.html
+- https://github.com/lvgl/lvgl/tree/master/examples
+- https://github.com/lvgl/lv_arduino/blob/master/lv_conf.h
+
 ---
 
-### Updated `todo.md` — Nexus PDU: Electronic Drum Lighting System
+###  Nexus PDU: Electronic Drum Lighting System
 
 #### 🟢 Phase 1: Mechanical Design & Housing
 
