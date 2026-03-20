@@ -1,84 +1,79 @@
-# Drum LED Controller v5 #
+# ADLS — Automated Drum Lighting System
+### Nexus PDU · v5
 
-# Notes #
-To handle a 300W load at a nominal 14.8V (4S LiPo), you are looking at continuous currents around **20A**. Standard small signal diodes will melt instantly.
-
-You need **Power Schottky Rectifiers** in a **TO-220** or **TO-247** package. These look like power transistors and are designed to be bolted to a heatsink.
-
-### The Component: MBR20100CT (or similar)
-
-I recommend the **MBR20100CT**. It is a "Dual Center Tap" Schottky.
-
-* **Current:** 20A (10A per leg, or 20A if you tie the legs together).
-* **Voltage:** 100V (way more than your 16.8V max, which provides a huge safety buffer).
-* **Low Forward Voltage:** Usually around $0.6V$ to $0.8V$ at full load, minimizing power loss and heat.
-
-### Engineering Rule: The "OR-ing" Heatsink
-
-Since you'll have two of these (one for Battery, one for External DC), and they will be dissipating roughly $12W$ to $15W$ of heat at full load ($Voltage Drop \times Current$), you **cannot** let them hang in the air.
-
-* **The Mount:** Bolt them directly to a small aluminum finned heatsink inside the Core Node’s electronics bay.
-* **The Insulation:** Use a **Sil-Pad** or mica insulator between the diode and the heatsink if the heatsink is shared, as the "Tab" of these diodes is usually connected to the Cathode (output).
-
-### References ###
-- https://www.waveshare.com/wiki/ESP32-S3-Touch-LCD-7B
-- https://docs.lvgl.io/master/index.html
-- https://github.com/lvgl/lvgl/tree/master/examples
-- https://github.com/lvgl/lv_arduino/blob/master/lv_conf.h
+A distributed, real-time reactive LED lighting system for a drum kit. Each drum runs an autonomous edge controller that detects hits via piezo sensor and drives an SK6812NW RGBW strip locally. A central Core Node handles power distribution, wireless configuration, and a live Mission Control dashboard.
 
 ---
 
-###  Nexus PDU: Electronic Drum Lighting System
+## Hardware at a Glance
 
-#### 🟢 Phase 1: Mechanical Design & Housing
-
-* [x] **Core Node:** Finalize Wood/Lexan hybrid clamshell design.
-* [x] **Core Node:** Plan internal "Spine" reinforcement for drum stand mount.
-* [ ] **Core Node:** Fabricate partitioned enclosure (Electronics Bay vs. Storage Bay).
-* [ ] **Core Node:** Install aluminum heatsink area for power semiconductors.
-* [ ] **Drum Nodes:** Design/Print 3D brackets for diagnostic I/O (LEDs, Test Button, Mode Button).
-
-#### 🟡 Phase 2: Power Grid & Custom PCB Design
-
-* [ ] **Core Node Power Path (The Schottky Protection):**
-* [ ] **Source Selection:** Install **MBR20100CT** (or equivalent) Schottky diodes for Battery/DC "OR-ing."
-* [ ] **Thermal Management:** Secure Schottkys to heatsink with thermal paste/insulators.
-* [ ] **Bus Bars:** Layout high-current copper bus bars (use thick 12AWG or 10AWG wire).
-* [ ] **Regulator:** Mount 300W buck-boost converter with vibration-dampened standoffs.
-
-
-* [ ] **Drum Node PCB Layout (EasyEDA):**
-* [ ] Finalize schematic: XIAO ESP32-S3 + 3.3V Zener + 1MΩ Resistor + 330Ω Data Resistor.
-* [ ] Route **25mil** power traces and **Copper Ground Planes**.
-* [ ] Order PCBs and components (NKK switches, LED holders, 1N4728A Diodes).
-
-
-
-#### 🔵 Phase 3: Core Node UI & Display (1280x800)
-
-* [ ] **Display Setup:** Configure `lv_conf.h` for **1280x800** resolution and double-buffering.
-* [ ] **Mission Control UI:**
-* [ ] Build "Dashboard" status cards for each connected drum.
-* [ ] Create digital sliders for remote sensitivity (transmitted via ESP-NOW).
-* [ ] Enable high-res fonts (Montserrat 24/32) for stage visibility.
-
-
-
-#### 🔴 Phase 4: Wireless Protocol & Logic (ESP-NOW)
-
-* [ ] **Protocol:** Define bi-directional `struct` (Mode, Color, Sensitivity, Telemetry).
-* [ ] **Discovery:** Implement "Auto-Join" so Core Node identifies nodes by MAC address.
-* [ ] **Drum Node Firmware:** * [ ] State machine for **Color Mode** and **Test** buttons.
-* [ ] **NVS Storage:** Save sensitivity/mode locally on the XIAO.
-* [ ] Sync LED logic (Blink = Searching, Solid = Connected).
-
-
+| Role | Board | Notes |
+|---|---|---|
+| Core Node | Waveshare ESP32-S3-Touch-LCD-7B | 1024×600 · capacitive touch · LVGL v9 |
+| Drum Node (×N) | Seeed Studio XIAO ESP32-S3 | One per drum · autonomous edge logic |
+| LED Strip | SK6812NW · 60 LED/m | 5V · RGBW · Natural White ~4000K |
+| Transport | 14.8–20V trunk via SP13 connectors | Local 5V buck conversion at each node |
+| Battery | 2× Tattu 10Ah 4S LiPo (parallel) | 20Ah · 14.8V nominal |
+| Charger | SlimQ 150W GaN | 20V DC · UPS topology via ideal diodes |
 
 ---
 
-### Updated Hardware Inventory (Power Focus)
+## Project Structure
 
-* **Power Protection:** 2x MBR20100CT Schottky Diodes (Power OR-ing).
-* **Trigger Protection:** 1N4728A 3.3V Zener Diodes (One per Drum Node).
-* **Structure:** 1/2" Baltic Birch, 1/4" Lexan, Roland APC-33 Mount.
-* **Compute:** XIAO ESP32-S3 (Drum), ESP32-S3 DevKit (Core).
+```
+/
+├── README.md               ← You are here
+├── manifest.md             ← Agent handover protocol, constraints, architecture map
+├── todo.md                 ← Phase tracker and task checklist
+├── docs/
+│   ├── hardware/
+│   │   ├── pinout.md       ← GPIO assignments for Core Node and Drum Node
+│   │   ├── power_specs.md  ← Power architecture, 3.0A per-node protocol, thermal rules
+│   │   └── architecture.md ← System block diagram and design decisions
+│   └── software/
+│       ├── hit_detection.md
+│       ├── led_engine.md
+│       └── ui_lvgl.md
+├── .agent/
+│   └── standards.md        ← Coding standards, naming conventions, agent rules
+├── src/
+│   ├── core_node/          ← Waveshare 7B firmware (LVGL, ESP-NOW master)
+│   └── drum_node/          ← XIAO firmware (FastLED, piezo trigger, ESP-NOW slave)
+└── assets/
+    └── palettes/           ← Color definitions per lighting mode
+```
+
+---
+
+## Key Design Principles
+
+**Edge autonomy.** Drum Nodes trigger and light independently. They do not wait for the Core Node to authorize a flash — the hit-to-LED path is entirely local and targets < 10ms latency.
+
+**UPS power topology.** The Core Node runs on wall power when available and switches to battery seamlessly via active ideal diode OR-ing. Batteries charge in the background while the system runs.
+
+**Transport high, convert local.** 14.8–20V travels over thin 18AWG trunk cables to minimize voltage drop and wire weight. Each Drum Node steps down to 5V locally via a dedicated buck converter.
+
+**3.0A per-node soft cap.** `FastLED.setMaxPowerInVoltsAndMilliamps(5, 2500)` enforces a per-node brightness ceiling. The Core Node broadcasts a tighter cap when running on wall power to stay within the 150W GaN charger budget.
+
+---
+
+## Quick Reference
+
+| Document | What's in it |
+|---|---|
+| `manifest.md` | Hard constraints, agent protocol, active project state |
+| `todo.md` | Full phase-by-phase task checklist |
+| `docs/hardware/pinout.md` | Every GPIO assignment with protection circuit notes |
+| `docs/hardware/power_specs.md` | Power architecture, scaling algorithm, thermal limits |
+| `docs/hardware/architecture.md` | System block diagram, confirmed design decisions |
+| `.agent/standards.md` | C++ style, real-time rules, LVGL integration standards |
+
+---
+
+## References
+
+- [Waveshare ESP32-S3-Touch-LCD-7B Wiki](https://www.waveshare.com/wiki/ESP32-S3-Touch-LCD-7B)
+- [LVGL v9 Documentation](https://docs.lvgl.io/master/index.html)
+- [LVGL Examples](https://github.com/lvgl/lvgl/tree/master/examples)
+- [FastLED SK6812 RGBW](https://github.com/FastLED/FastLED)
+- [Seeed XIAO ESP32-S3 Pinout](https://wiki.seeedstudio.com/xiao_esp32s3_getting_started/)
