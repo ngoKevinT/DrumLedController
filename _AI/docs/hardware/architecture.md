@@ -19,7 +19,7 @@
 │  └──────────────┘    │  Nilight 6-way fuse block (10A each) │  │
 │                      └───────────────────┬──────────────────┘  │
 │  ┌─────────────────────────────────────┐ │                      │
-│  │  LVGL v9 Mission Control (1024×600) │ │  6× SP13 outputs     │
+│  │  LVGL v8.4 Mission Control (1024×600)│ │  6× SP13 outputs     │
 │  │  · Per-drum status cards            │ │  14.8–20V trunk      │
 │  │  · Sensitivity sliders              │ │  18AWG silicone      │
 │  │  · Color palette picker             │ │  Techflex sleeve     │

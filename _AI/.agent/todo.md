@@ -16,8 +16,9 @@
 | BMS | Daly 4S 40A Common-Port BMS | P− to star ground · B− to batteries |
 | Power switch | 24V Illuminated Rocker/Toggle | 20A rated · switch LED GND → star ground |
 | Main fuse | 40A Automotive Blade Fuse | Inline after switch |
-| Distribution | Nilight 6-Way Fuse Block | 10A blade fuse per channel |
-| Logic buck | Mini 5V 3A Buck (solder pad) | Protected · fixed output · powers display + voltmeters |
+| Distribution | Nilight 6-Way Blade Fuse Block (SKU 781621092802) | ATC/ATO blade fuses · negative bus · red LED indicator per blown fuse · 32V DC max · 30A per circuit · 100A panel max · PBT base + PC waterproof cover · 10A blade fuse per channel |
+| Logic buck | Mini 5V 3A Buck (solder pad) | Protected · fixed output · powers display + voltmeters + fans |
+| Cooling fans | 2× Noctua NF-A4x10 5V (3-pin) | 40×10mm · 4500 RPM · 8.2 m³/h · 17.9 dB(A) · 0.6W each · tap 5V logic rail · intake + exhaust pair |
 | Voltmeters | 6× 0.28" 3-Wire Mini Voltmeter | Sense wire per SP13 output channel |
 | Wall voltmeter | 0.28" 3-Wire Mini Voltmeter | Sense wire on wall input line |
 | Battery gauge | 4S Capacity Indicator (LED bar) | Taps parallel battery positive |
@@ -38,24 +39,30 @@
 | MCU | Seeed Studio XIAO ESP32-S3 | Dual-core · 5V pin · D0 data · A0 trigger · D1/D2/D4/D5 I/O |
 | LED strip | SK6812NW 60 LED/m | 5V · RGBW · Natural White ~4000K |
 | Input connector | SP13 90° 2-pin | Pin 1: 14.8–20V in · Pin 2: GND |
-| LED connector | JST-XH 3-pin (or 4-pin) | Detachable · 3A/contact · 5V · GND · Data |
+| LED bus out | Neutrik TA4F panel socket (mini XLR) | Enclosure wall · Pin 1: 5V · Pin 2: GND · Pin 3: DATA1 · Pin 4: DATA2 |
+| LED cable end | Cable Techniques LPS-TA4F | Right-angle · 60° adjustable exit · cable parallel to drum shell |
+| LED bus terminal block | 1× 4-pin 2.54mm PCB screw terminal | TB3 · TA4F panel wires land directly here · no intermediate header needed |
 | Input cap | 1000µF 25V Electrolytic | Across SP13 input — anti-flicker reservoir |
 | TVS diode | P6KE24A | Across SP13 Pin 1/2 — clamps hot-plug inductive spikes to 24V |
 | Buck converter | Mini 5V 3A Buck (solder pad) | Fixed output · taps after TVS · powers strip + XIAO |
 | Decoupling cap | 100nF 0603 Ceramic | Directly adjacent to XIAO VCC pin — high-freq decoupling |
-| Piezo resistor | 10kΩ 1/4W | Series · current limits piezo signal |
-| Zener diode | 1N4728A 3.3V | Cathode → signal · Anode → GND · clamps positive spikes |
-| Schottky diode | 1N5817 | Anode → GND · Cathode → signal · clamps negative ringing |
+| Piezo resistors | 2× 10kΩ 1/4W | Series on TIP (TB4 p1) and RING (TB4 p2) · current limits both piezo signals |
+| Zener diodes | 2× 1N4728A 3.3V | One per signal channel · Cathode → signal · Anode → GND · clamps positive spikes on tip and ring |
+| Schottky diodes | 2× 1N5817 | One per signal channel · Anode → GND · Cathode → signal · clamps negative ringing on tip and ring |
 | Data resistor | 330Ω 1/4W | Series on D0 → LED DIN · prevents signal ringing |
 | ESD diode | PRTR5V0U2X | On D0 data line — ESD protection |
 | Trigger jack | 1/4" TRS Panel Mount | Piezo input |
-| LED amber | 5mm Amber + 220Ω | Hardwired to high rail (pre-buck) — SP13 power present |
-| LED green | 5mm Green + 220Ω | Hardwired to 5V buck output — logic rail live |
-| LED blue | 5mm Blue + 220Ω | XIAO D1 — blink=searching · solid=connected |
-| LED red | 5mm Red + 220Ω | XIAO D2 — flashes on trigger hit |
-| LED holders | 5mm Plastic Socket × 4 | Panel mount |
-| Test button | NKK JB15 Tactile Switch | XIAO D4 — fires trigger manually |
-| Mode button | NKK JB15 Tactile Switch | XIAO D5 — cycles local color mode |
+| LED amber | 3mm Amber + 1kΩ (pre-buck tap) | Hardwired to high rail (pre-buck) — SP13 power present |
+| LED green | 3mm Green + 220Ω | Hardwired to 5V buck output — logic rail live |
+| LED blue | 3mm Blue + 220Ω | XIAO D1 — blink=searching · solid=connected |
+| LED red | 3mm Red + 220Ω | XIAO D2 — flashes on trigger hit |
+| LED holders | 3mm plastic panel socket × 4 · push-fit · 5.5mm drill hole | Panel mount |
+| Test button | Gebildet 7mm mini momentary (SPST NO) | XIAO D4 · prewired · panel mount · 1A 250VAC · 7mm hole |
+| Mode button | Gebildet 7mm mini momentary (SPST NO) | XIAO D5 · prewired · panel mount · 1A 250VAC · 7mm hole |
+| Button terminal block | 1× 3-pin 2.54mm PCB screw terminal | TB1 · pin1=D4 · pin2=D5 · pin3=GND shared · SW1+SW2 prewired leads land here · 150V 6A · 26–18AWG |
+| LED indicator terminal block | 1× 5-pin 2.54mm PCB screw terminal | TB2 · pin1=AMB · pin2=GRN · pin3=BLU · pin4=RED · pin5=GND (shared cathode return) · 150V 6A |
+| LED bus terminal block | 1× 4-pin 2.54mm PCB screw terminal | TB3 · pin1=5V · pin2=DATA1 · pin3=DATA2 · pin4=GND · TA4F panel wires land here · 150V 6A |
+| Piezo terminal block | 1× 3-pin 2.54mm PCB screw terminal | TB4 · pin1=TIP signal · pin2=RING signal · pin3=GND · both tip and ring fully protected · 150V 6A |
 | Internal wire | 18AWG High-Strand Silicone | All internal connections — vibration resistant |
 | Trunk cable | 18AWG Silicone + Techflex Clean-Cut sleeve | Core Node → drum SP13 runs |
 | PCB mount | 4× M2 TPU standoffs | Isolates PCB from drum shell vibration |
@@ -72,7 +79,7 @@
   - [ ] Cut Lexan faceplate — flush-mount 7" display cutout + 8× voltmeter slots
   - [ ] Install internal partition wall (Electronics Bay vs Storage Bay)
   - [ ] Glue and screw 3" plywood spine across floor for mount plate anchor
-  - [ ] Drill ventilation holes — rear wall and bottom edge for convection
+  - [ ] Drill/cut fan apertures — 40×40mm intake low on rear wall, 40×40mm exhaust high on opposite wall · align with airflow lane through electronics bay
   - [ ] Install Roland APC-33 / Gibraltar plate through Lexan floor + spine (fender washers + nylon lock nuts)
   - [ ] Install piano hinge (full-width, rear) and butterfly latches (front × 2)
   - [ ] Attach adhesive foam weatherstripping to lid cut edge
@@ -81,7 +88,9 @@
   - [ ] Mount aluminum heatsink/spine for Ideal Diode modules and buck converters
   - [ ] Install Sil-Pads between diode tabs and heatsink
   - [ ] Locate batteries on floor for low center of gravity
-  - [ ] Install 30–40mm fan with honeycomb exhaust mesh
+  - [ ] Install 2× Noctua NF-A4x10 5V fans — intake low on rear wall, exhaust high on opposite side · both on 5V logic rail · always on when logic buck is live
+  - [ ] Cut honeycomb exhaust mesh apertures for both fan positions (40×40mm each)
+  - [ ] Position CC/CV module and ideal diodes in airflow lane between intake and exhaust
 
 - [ ] **Drum Node enclosures**
   - [ ] Design 3D-printable PETG hockey-puck enclosure (~55×25mm)
@@ -106,7 +115,7 @@
 - [ ] Install reverse polarity P-ch MOSFET on battery positive line
 - [ ] Install 100kΩ / 10kΩ voltage divider: main bus → ESP32 ADC pin (for LVGL dashboard readout)
 - [ ] Wire logic 3A buck: main VCC bus → IN, 5V OUT → Waveshare 7B + all 6× voltmeter RED wires
-- [ ] Wire Nilight fuse block: main VCC bus stud → input, 10A blade per channel
+- [ ] Wire Nilight fuse block: main VCC bus stud → input, 10A blade fuse per channel
 - [ ] Wire 6× SP13 outputs: fuse block terminal + voltmeter YELLOW sense wire per channel
 - [ ] Star ground bus bar: wall (−), batt (−) via BMS P−, diode GND pads × 2, CC/CV GND, buck GND in/out, display GND, 6× SP13 Pin 2, switch LED GND, all voltmeter BLACK wires
 - [ ] Daly BMS wiring: P− → star ground, B− → parallel battery negative junction, balance harness to cell junctions
@@ -117,14 +126,19 @@
   - SP13 Pin 1 → TVS P6KE24A (across to GND) → 1000µF cap (across to GND) → buck VIN
   - Buck VOUT (5V) → 100nF ceramic cap (across to GND, placed ≤3mm from XIAO VCC)
   - 5V rail → XIAO VCC pin, SK6812NW VCC, LED indicators (via 220Ω each)
-  - XIAO D0 → 330Ω → PRTR5V0U2X ESD diode → JST-XH pin 3 (DIN)
-  - XIAO A0 ← 10kΩ series ← 1/4" TRS tip · 1N4728A Zener (C→signal, A→GND) · 1N5817 Schottky (A→GND, C→signal)
-  - XIAO D1 → 220Ω → Blue LED → GND
-  - XIAO D2 → 220Ω → Red LED → GND
-  - XIAO D4 ← Test button → GND (internal pull-up)
-  - XIAO D5 ← Mode button → GND (internal pull-up)
-  - Amber LED: tap pre-buck VCC → 1kΩ → LED → GND
-  - Green LED: tap 5V buck out → 220Ω → LED → GND
+  - 5V rail → TB3 pin1 → TA4F panel pin1 (5V)
+  - XIAO D0 → 330Ω → PRTR5V0U2X ESD diode → TB3 pin2 → TA4F panel pin2 (DATA1)
+  - Spare GPIO → TB3 pin3 → TA4F panel pin3 (DATA2, optional)
+  - GND → TB3 pin4 → TA4F panel pin4 (GND)
+  - XIAO A0 ← 10kΩ series ← TB4 pin1 (TRS tip) · 1N4728A Zener (C→signal, A→GND) · 1N5817 Schottky (A→GND, C→signal)
+  - XIAO [spare ADC] ← 10kΩ series ← TB4 pin2 (TRS ring) · 1N4728A Zener (C→signal, A→GND) · 1N5817 Schottky (A→GND, C→signal)
+  - TB4 pin3 → GND star (TRS sleeve / shield return)
+  - Pre-buck tap → 1kΩ → TB2 pin1 → Amber LED (panel) → cathode → TB2 pin5 (GND)
+  - 5V rail → 220Ω → TB2 pin2 → Green LED (panel) → cathode → TB2 pin5 (GND)
+  - XIAO D1 → 220Ω → TB2 pin3 → Blue LED (panel) → cathode → TB2 pin5 (GND)
+  - XIAO D2 → 220Ω → TB2 pin4 → Red LED (panel) → cathode → TB2 pin5 (GND)
+  - TB2 pin5 → GND star (single shared cathode return for all 4 indicator LEDs)
+  - XIAO D4 (pull-up) ← TB1 pin1 · XIAO D5 (pull-up) ← TB1 pin2 · TB1 pin3 → GND star
 - [ ] Route power traces ≥ 25mil for 5V and GND
 - [ ] Add copper ground plane both sides
 - [ ] Add teardrops on all pads (vibration hardening)
@@ -138,7 +152,7 @@
 
 ## Phase 3: Core Node Display & UI (1024×600)
 
-- [ ] **LVGL v9 environment**
+- [ ] **LVGL v8.4 environment**
   - [ ] Configure `lv_conf.h`:
     - `#if 1` master enable
     - `LV_COLOR_DEPTH 16`
@@ -246,7 +260,7 @@
 
 - [ ] Apply neutral-cure electronics silicone to large capacitors on 300W CC/CV module (vibration dampening)
 - [ ] Thermal paste between Ideal Diode module tabs and heatsink
-- [ ] Verify 30–40mm fan spins on Core Node power-on
+- [ ] Verify both Noctua NF-A4x10 5V fans spin on Core Node power-on (logic rail live = fans live)
 - [ ] Firmware thermal throttle on drum nodes (if NTC added):
   - < 55°C → full brightness
   - 55–65°C → linear ramp to 120/255
@@ -264,7 +278,7 @@
 - [ ] Global brightness soft-cap when on wall power (wall detection via ADC divider)
 - [ ] `FastLED.setMaxPowerInVoltsAndMilliamps(5, 2500)` on wall mode · `(5, 12000)` on battery
 - [ ] Pre-show checklist: verify all 6 voltmeters reading expected voltage, all nodes show ONLINE, battery gauge above 80%
-- [ ] Assemble field repair kit: spare 10A fuses, spare SP13 plugs, pre-crimped JST-XH pigtails, spare XIAO, spare TVS diodes
+- [ ] Assemble field repair kit: spare 10A fuses, spare SP13 plugs, spare TA4F cables, pre-crimped JST-XH 4-pin pigtails, spare XIAO, spare TVS diodes
 
 ---
 
@@ -277,6 +291,8 @@
 - **Charging**: Internal CC/CV module charges batteries while system runs (UPS topology) — common-port BMS
 - **Sensitivity**: Software-controlled from Core Node UI, transmitted via ESP-NOW, persisted in NVS on each drum node
 - **No local power switch on drum nodes**: Core Node is the only kill switch — prevents accidental mid-show shutoff
-- **Drum node connectors**: JST-XH 3-pin for LED strip (field-replaceable), SP13 90° for power trunk
+- **Drum node I/O buses**: SP13 90° (power in from Core Node) · 1/4" TRS (piezo trigger in) · Neutrik TA4F mini XLR panel socket (LED bus out: 5V, GND, DATA1, DATA2) · Cable Techniques LPS-TA4F right-angle on cable end · TA4F wires land directly on TB3 (no intermediate JST-XH header)
+- **Drum node panel connections via terminal blocks**: TB1 (3-pin) ← D4 · D5 · GND · TB2 (5-pin) ← AMB · GRN · BLU · RED · GND · TB3 (4-pin) ← 5V · DATA1 · DATA2 · GND · TA4F direct · TB4 (3-pin) ← TIP · RING · GND · all GND on last pin · all 2.54mm pitch · 150V 6A · 26–18AWG
+- **Buttons**: Gebildet 7mm mini momentary SPST NO (prewired, panel mount) replacing NKK JB15 — panel mount with flying leads landing on TB1
 - **TVS diode on SP13 input**: P6KE24A — protects buck converter from hot-plug inductive spikes
 - **100nF ceramic cap on XIAO VCC**: 0603 package, placed ≤3mm from VCC pin — high-frequency decoupling

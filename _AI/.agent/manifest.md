@@ -4,7 +4,7 @@
 
 * **Mission:** To create a low-latency, real-time reactive lighting system for a drum kit that provides visual feedback based on hit velocity and frequency.
 * **Target Hardware:** Waveshare ESP32-S3-Touch-LCD-7B (Core Node), Seeed Studio XIAO ESP32-S3 (Drum Nodes), SK6812NW RGBW LED Strips, Piezo Sensors.
-* **Key Frameworks:** LVGL v9 (UI), FastLED ≥3.7.7 (LED Logic), FreeRTOS (Task Management), ESP-NOW (Wireless).
+* **Key Frameworks:** LVGL v8.4 (UI — matches Waveshare driver requirement), FastLED ≥3.7.7 (LED Logic), FreeRTOS (Task Management), ESP-NOW (Wireless).
 
 ---
 

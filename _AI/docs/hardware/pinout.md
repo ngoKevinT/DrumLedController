@@ -30,6 +30,10 @@
 | SP13 Pin 1 → 1kΩ → Amber LED → GND | Pre-buck indicator — trunk power present. |
 | Buck VOUT (5V) → 220Ω → Green LED → GND | Post-buck indicator — logic rail live. |
 | Buck VOUT (5V) → 100nF ceramic 0603 → GND | Decoupling cap. Must be ≤3mm from XIAO VCC pin on PCB. |
+| TA4F panel Pin 1 ← JST-XH header pin 1 ← Buck 5V out | LED bus 5V — from local buck, not trunk voltage. |
+| TA4F panel Pin 2 ← JST-XH header pin 2 ← Local GND | LED bus GND — star ground. |
+| TA4F panel Pin 3 ← JST-XH header pin 3 ← 330Ω ← PRTR5V0U2X ← XIAO D0 | LED bus DATA1 — SK6812NW strip 1 DIN. |
+| TA4F panel Pin 4 ← JST-XH header pin 4 ← 330Ω ← PRTR5V0U2X ← XIAO D0 (or spare GPIO) | LED bus DATA2 — SK6812NW strip 2 DIN (if dual strip). |
 
 ---
 
@@ -52,7 +56,23 @@
 
 ---
 
-## 4. Electrical Safety Notes
+## 4. Drum Node I/O Bus Summary
+
+Three physical connectors on the drum node enclosure wall:
+
+| Bus | Connector | Direction | Carries |
+| :--- | :--- | :--- | :--- |
+| **Power in** | SP13 90° 2-pin | In ← Core Node | 14.8–20V trunk + GND |
+| **Trigger in** | 1/4" TRS panel mount | In ← Piezo sensor | Analog signal + sleeve GND |
+| **LED bus out** | Neutrik TA4F mini XLR panel socket | Out → LED strips | 5V · GND · DATA1 · DATA2 |
+
+Cable end (at drum shell): **Cable Techniques LPS-TA4F** right-angle plug. Cable exits parallel to shell surface — no protrusion. 60° adjustable exit direction.
+
+Internal routing: TA4F panel socket → short wire run → **JST-XH 4-pin header** on PCB. PCB does not need to be positioned at the enclosure wall.
+
+---
+
+## 5. Electrical Safety Notes
 
 * **TVS on SP13 input (Drum Node):** P6KE24A across SP13 Pin 1/2. Clamps hot-plug inductive spikes before they reach the buck converter. Required — drums are connected/disconnected at every show.
 * **100nF decoupling cap:** 0603 ceramic on XIAO VCC, placed ≤3mm from the VCC pin and routed before any other power traces. Prevents ADC noise, ESP-NOW packet corruption, and brown-out resets during high-speed LED updates.
