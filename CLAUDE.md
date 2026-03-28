@@ -31,8 +31,11 @@ they are more detailed. This file is the quick-start summary only.
 
 ### Drum Node
 - **Board:** Seeed Studio XIAO ESP32-S3
-- **LED data pin:** D0 — always. Never D10, never any other pin.
-- **Trigger pin:** A0 (ADC1)
+- **LED data pin:** D9 (GPIO8) primary, D10 (GPIO9) future secondary — never D0
+- **Trigger pins:** A0/D0 (GPIO1) ch1 TRS Tip, A1/D1 (GPIO2) ch2 TRS Ring, A2/D2 (GPIO3) ring detect — all left side
+- **Status LEDs:** D8 (GPIO7) blue, D7 (GPIO44) red — right side, away from analog
+- **Buttons:** D3 (GPIO4) test (5s hold = re-pair), D4 (GPIO5) mode — left side
+- **Onboard LED:** GPIO21, active LOW — replaces discrete green LED
 - **Power input:** 5V from local buck converter — never connect trunk voltage (14.8–20V) directly to XIAO
 
 ### LED Strip
@@ -159,15 +162,20 @@ struct DrumState {
 Full details in `docs/hardware/pinout.md`. Critical pins only:
 
 ### Drum Node (XIAO ESP32-S3)
-| Pin | Function |
-|-----|----------|
-| A0  | Piezo trigger ADC input |
-| D0  | SK6812NW data out (330Ω series + ESD diode) |
-| D1  | Blue LED — sync status |
-| D2  | Red LED — trigger mirror |
-| D4  | Test button (INPUT_PULLUP) |
-| D5  | Mode button (INPUT_PULLUP) |
-| 5V  | Power from local buck — NOT trunk voltage |
+| Pin | GPIO | Function |
+|-----|------|----------|
+| A0/D0 | 1  | Trigger ch1 — TRS Tip (piezo input, 10kΩ series + Zener + Schottky) |
+| A1/D1 | 2  | Trigger ch2 — TRS Ring (second piezo or hi-hat choke) |
+| A2/D2 | 3  | Ring detect — TRS normalling contact (HIGH=TS, LOW=TRS) |
+| D3  | 4  | Test button (INPUT_PULLUP — 5s hold triggers re-pairing) |
+| D4  | 5  | Mode button (INPUT_PULLUP — cycles lighting mode) |
+| D5  | 6  | Reserved — NTC thermistor (Phase 7 thermal management) |
+| D7  | 44 | Red LED — 80ms flash on trigger, solid on continuous noise |
+| D8  | 7  | Blue LED — blink=searching, solid=paired, 500ms=re-pairing |
+| D9  | 8  | SK6812NW data out primary (330Ω series + ESD diode) |
+| D10 | 9  | SK6812NW data out secondary — future (330Ω series + ESD diode) |
+| —   | 21 | Onboard LED — active LOW, confirms logic rail live |
+| 5V  | —  | Power from local buck — NOT trunk voltage |
 
 ### Core Node (Waveshare 7B)
 | Pin | Function |
@@ -191,20 +199,20 @@ schematic review or BOM generation:
 | TVS diode | P6KE24A | Across SP13 Pin 1/2 | Clamps hot-plug inductive spikes |
 | Input cap | 1000µF 25V electrolytic | After TVS, before buck VIN | Anti-flicker reservoir |
 | Decoupling cap | 100nF 0603 ceramic | ≤3mm from XIAO VCC pin | High-freq noise suppression |
-| Piezo resistor | 10kΩ 1/4W | Series on A0 signal line | Current limits piezo signal |
-| Zener diode | 1N4728A 3.3V | Cathode→signal, Anode→GND | Clamps positive piezo spikes |
-| Schottky diode | 1N5817 | Anode→GND, Cathode→signal | Clamps negative ringing |
-| Data resistor | 330Ω 1/4W | Series on D0, close to XIAO | Prevents signal ringing |
-| ESD diode | PRTR5V0U2X | D0 data line | ESD protection on LED data |
+| Piezo resistor | 10kΩ 1/4W | Series on A0 (ch1) and D1 (ch2) signal lines | Current limits piezo signal |
+| Zener diode | 1N4728A 3.3V | Cathode→signal, Anode→GND (both trigger channels) | Clamps positive piezo spikes |
+| Schottky diode | 1N5817 | Anode→GND, Cathode→signal (both trigger channels) | Clamps negative ringing |
+| Data resistor | 330Ω 1/4W | Series on D9 (primary) and D10 (future), close to XIAO | Prevents signal ringing |
+| ESD diode | PRTR5V0U2X | D9 and D10 data lines | ESD protection on LED data |
 
 ---
 
 ## 8. Active Project State
 
 - **Current phase:** Phase 2 — Drum Node PCB design + Core Node power grid wiring
-- **Board confirmed:** Waveshare ESP32-S3-Touch-LCD-7B (updated from LilyGo T-Display-S3)
-- **Active bottleneck:** Waveshare 7B backlight init via CH32V003 I2C + LVGL v9 RGB panel driver
-- **Recently locked:** TVS diode on SP13 input, 100nF decoupling cap on XIAO VCC
+- **Board confirmed:** Waveshare ESP32-S3-Touch-LCD-7B (Core Node), Seeed XIAO ESP32-S3 (Drum Node — hardware in hand)
+- **Active bottleneck:** Drum Node PCB schematic — dual-channel TRS trigger, D9/D10 LED data routing
+- **Recently locked:** Full drum node GPIO assignments (see section 6), dual-channel TRS trigger, D9 primary LED data, left/right side EMI separation, GPIO21 onboard LED replaces discrete green LED
 
 Update this section after completing each phase milestone.
 

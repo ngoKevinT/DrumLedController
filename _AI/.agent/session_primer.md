@@ -20,9 +20,9 @@ Do not write any code until you have read all four.
 ## Current Project State
 
 - **Core Node:** Waveshare ESP32-S3-Touch-LCD-7B · 1024×600 · LVGL v8.4
-- **Drum Node:** Seeed Studio XIAO ESP32-S3 · EasyEDA Pro v2.2.45.4
+- **Drum Node:** Seeed Studio XIAO ESP32-S3
 - **Active phase:** [REPLACE WITH CURRENT PHASE, e.g. "Phase 2 — Drum Node PCB schematic"]
-- **Working on today:** [REPLACE WITH TASK, e.g. "Drum Node PCB layout — place and route power path"]
+- **Working on today:** [REPLACE WITH TASK, e.g. "Drum Node trigger firmware — ADC sampling and peak detection"]
 
 ---
 
@@ -40,63 +40,15 @@ Examples:
 ## Constraints Reminder (copy-paste as needed)
 
 - No `delay()` anywhere — `millis()`, `micros()`, or FreeRTOS only
-- LED Data 1 pin is **D9/GPIO8** — not D0, not any other pin
-- LED Data 2 pin is **D10/GPIO9** — future use, NC in current build
-- Trigger ch1 (Tip) ADC is **A0/GPIO1** — always active for TS and TRS
-- Trigger ch2 (Ring) ADC is **D3/GPIO4** — only sampled in TRS stereo mode
-- Ring detect is **D8/GPIO7** — internal pull-up · LOW = TS mono · HIGH = TRS stereo
+- LED data pin is **D9** (GPIO8) primary, **D10** (GPIO9) future — never D0
+- Trigger pins: **A0/D0** (GPIO1) ch1, **A1/D1** (GPIO2) ch2, **A2/D2** (GPIO3) ring detect — all left side
+- Status LEDs: **D8** (GPIO7) blue, **D7** (GPIO44) red — right side, away from analog
+- Buttons: **D3** (GPIO4) test, **D4** (GPIO5) mode — left side, quiet digital
 - LVGL version is **v8.4** — do not use v9 APIs
 - Per-node power cap: `FastLED.setMaxPowerInVoltsAndMilliamps(5, 2500)`
 - PSRAM required for LVGL draw buffer — check `psramInit()` on boot
 - All GPIO numbers come from `pinout.h` constants — never hardcoded inline
 - FastLED minimum version: **3.7.7** (required for `.setRgbw()` on SK6812NW)
-- Buck module (QS-1205CME-3A) 5V pad must be bridged BEFORE soldering to PCB
-- PRTR5V0U2X pin assignment: Pin1=GND · Pin2=IO1(in) · Pin3=IO2(out) · Pin4=VCC
-- C2 100nF decoupling cap has NO polarity — ceramic cap
-- P6KE24A TVS: cathode (banded end) → VIN_RAW · anode → GND
-- Power trace width ≥ 1.0mm (40mil) · signal ≥ 0.3mm (12mil) · clearance ≥ 0.5mm
-- Onboard user LED is **GPIO21, active LOW** — `digitalWrite(LED_BUILTIN, LOW)` = ON · no external component
-- Blue LED state machine: pairing blink = 500ms · paired = solid · offline = 1000ms blink
-- Red LED: flashes 80ms on any trigger detection (ch1 or ch2) · stays solid if continuous noise above threshold
-- Test button hold ≥ 5s → pairing mode · short press → manual trigger · use `millis()` — no blocking
-- TRS jack must be **switched type** with normalling contact — not a basic unswitched stereo jack
-
----
-
-## Drum Node Pin Assignments (XIAO ESP32-S3)
-
-| Arduino | GPIO | Function |
-|---|---|---|
-| A0 | GPIO1 | Trigger ch1 — Tip — TS and TRS |
-| D3 | GPIO4 | Trigger ch2 — Ring — TRS only |
-| D8 | GPIO7 | Ring detect — TRS vs TS sense |
-| D1 | GPIO2 | Blue status LED |
-| D2 | GPIO3 | Red trigger LED |
-| D4 | GPIO5 | Test button (internal pull-up) |
-| D5 | GPIO6 | Mode button (internal pull-up) |
-| D9 | GPIO8 | LED Data 1 — SK6812NW DIN |
-| D10 | GPIO9 | LED Data 2 — future use |
-| GPIO21 | internal | Onboard user LED — active LOW — 5V live |
-| D6/D7 | GPIO43/44 | Spare — NC |
-
----
-
-## Key LCSC Part Numbers (Drum Node)
-
-| Part | LCSC |
-|---|---|
-| XIAO ESP32-S3 | C9900154951 |
-| PRTR5V0U2X ESD (×2) | C12333 |
-| 1000µF 25V electrolytic | C10750 |
-| 100nF 0805 ceramic (no polarity) | C49678 |
-| 1N4728A 3.3V Zener (×2) | C58985 |
-| 1N5817 Schottky (×2) | C8598 |
-| 10kΩ 1/4W TH resistor (×2) | C57438 |
-| 330Ω 1/4W TH resistor (×2) | C57436 |
-| 220Ω 1/4W TH resistor (×2) | C57435 |
-| 1kΩ 1/4W TH resistor | C57437 |
-
-Non-LCSC parts: P6KE24A (DigiKey/Mouser) · QS-1205CME-3A buck module (QSKJ/AliExpress)
 
 ---
 

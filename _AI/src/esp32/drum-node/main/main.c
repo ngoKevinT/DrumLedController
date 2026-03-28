@@ -7,12 +7,15 @@
  *
  *   What this verifies:
  *     1. Onboard LED blinks at 1 Hz → firmware boots, FreeRTOS is running
- *     2. Test button (D4) → immediate ESP-NOW ping sent; LED flashes fast
+ *     2. Test button (D3) → immediate ESP-NOW ping sent; LED flashes fast
  *     3. Periodic heartbeat → Core Node sees this node in its serial log
- *     4. Receive path → LED speeds up when any ESP-NOW packet arrives
+ *     4. Receive path → onboard LED speeds up when any ESP-NOW packet arrives
+ *
+ *   Pin assignments: see pinout.h — source of truth is todo.md.
  *
  *   Upgrade path:
- *     Phase 2 — add piezo ADC task, LED strip RMT driver, PAIR_REQ/ACK
+ *     Phase 2 — add ADC trigger task (A0 ch1, D1 ch2), LED strip RMT on D9,
+ *               PAIR_REQ/ACK handshake, NVS config persistence
  *     Phase 3 — wire cb_save() config packets → apply lighting mode
  *****************************************************************************/
 
@@ -37,22 +40,33 @@ static const uint8_t DRUM_NODE_ID = 1;
 /** How often to broadcast a heartbeat ping when idle. */
 static const uint32_t HEARTBEAT_INTERVAL_MS = 5000;
 
-/** LED blink period when idle — slow enough to read at a glance. */
+/** Onboard LED blink period at idle — 1 Hz, readable at a glance. */
 static const uint32_t BLINK_IDLE_MS = 1000;
 
-/** LED blink period after any radio activity — visually distinct from idle. */
+/** Onboard LED blink period after any radio activity — clearly distinct. */
 static const uint32_t BLINK_ACTIVE_MS = 80;
 
 /** How many blink cycles to stay in active rate before relaxing to idle. */
 static const uint32_t ACTIVE_BLINK_CYCLES = 10;
 
 // ---------------------------------------------------------------------------
-// Shared state between tasks (updated from recv callback)
+// Shared state between tasks
 // ---------------------------------------------------------------------------
 
 /** Remaining fast-blink cycles before returning to idle rate.
- *  Written by recv callback; read by blink task. */
+ *  Written by recv callback and button task; read by blink task. */
 static volatile uint32_t s_active_cycles = 0;
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * PIN_LED_ONBOARD (GPIO21) is active LOW on the XIAO ESP32-S3.
+ * These helpers make the intent clear at every call site.
+ */
+static inline void onboard_led_on(void)  { gpio_set_level(PIN_LED_ONBOARD, 0); }
+static inline void onboard_led_off(void) { gpio_set_level(PIN_LED_ONBOARD, 1); }
 
 // ---------------------------------------------------------------------------
 // ESP-NOW receive callback
@@ -60,8 +74,8 @@ static volatile uint32_t s_active_cycles = 0;
 
 /**
  * Called from the ESP-NOW WiFi task when any packet arrives.
- * Keep this fast — no blocking, no LVGL, no malloc.
- * Triggers a brief fast-blink burst to give visual feedback.
+ * Keep fast — no blocking, no LVGL, no malloc.
+ * Triggers a brief fast-blink burst for visual feedback without a scope.
  */
 static void on_recv(const uint8_t mac[6], const uint8_t *data, size_t len)
 {
@@ -73,7 +87,6 @@ static void on_recv(const uint8_t mac[6], const uint8_t *data, size_t len)
              mac[0], mac[1], mac[2], mac[3], mac[4], mac[5],
              hdr->type, hdr->node_id, hdr->seq);
 
-    // Signal the blink task that activity just happened
     s_active_cycles = ACTIVE_BLINK_CYCLES;
 }
 
@@ -82,20 +95,21 @@ static void on_recv(const uint8_t mac[6], const uint8_t *data, size_t len)
 // ---------------------------------------------------------------------------
 
 /**
- * Blinks PIN_LED_ONBOARD.
+ * Blinks the onboard user LED (GPIO21, active LOW).
  * Rate: BLINK_ACTIVE_MS for ACTIVE_BLINK_CYCLES after any radio event,
  * then relaxes back to BLINK_IDLE_MS.
- * This gives a clear "I received something" flash without needing a scope.
  */
 static void blink_task(void *arg)
 {
     gpio_reset_pin(PIN_LED_ONBOARD);
     gpio_set_direction(PIN_LED_ONBOARD, GPIO_MODE_OUTPUT);
-    bool state = false;
+    onboard_led_off();  // start with LED off (HIGH = off on active-LOW pin)
+
+    bool lit = false;
 
     while (1) {
-        state = !state;
-        gpio_set_level(PIN_LED_ONBOARD, state ? 1 : 0);
+        lit = !lit;
+        if (lit) onboard_led_on(); else onboard_led_off();
 
         uint32_t period;
         if (s_active_cycles > 0) {
@@ -110,11 +124,13 @@ static void blink_task(void *arg)
 }
 
 /**
- * Polls the test and mode buttons with 20 ms software debounce.
+ * Polls D3 (test) and D4 (mode) buttons with 20 ms software debounce.
+ * Also reads D2 (ring detect) and logs TRS cable type on change — useful
+ * for wiring verification without a multimeter.
  *
- * D4 press: broadcasts an immediate ESPNOW_PKT_PING and triggers the
- *           fast-blink visual so you can confirm the send without serial.
- * D5 press: placeholder — Phase 2 will cycle through lighting modes.
+ * D3 single press: broadcasts an immediate ESPNOW_PKT_PING.
+ * D3 5-second hold: re-pairing mode (Phase 2 — NVS MAC clear + reboot).
+ * D4 press: placeholder for Phase 2 mode cycling.
  */
 static void btn_poll_task(void *arg)
 {
@@ -126,51 +142,77 @@ static void btn_poll_task(void *arg)
     gpio_set_direction(PIN_BTN_MODE, GPIO_MODE_INPUT);
     gpio_set_pull_mode(PIN_BTN_MODE, GPIO_PULLUP_ONLY);
 
-    // Track previous level for falling-edge detection (PULLUP = HIGH when open)
-    bool prev_test = true;
-    bool prev_mode = true;
+    gpio_reset_pin(PIN_RING_DETECT);
+    gpio_set_direction(PIN_RING_DETECT, GPIO_MODE_INPUT);
+    gpio_set_pull_mode(PIN_RING_DETECT, GPIO_PULLUP_ONLY);
+
+    // Track previous levels for falling-edge detection (PULLUP = HIGH when open)
+    bool prev_test   = true;
+    bool prev_mode   = true;
+    bool prev_ring   = true;
 
     static uint16_t btn_seq = 0;
+    uint32_t test_held_ms   = 0;  // accumulates hold time for 5s re-pairing
 
     while (1) {
-        bool cur_test = gpio_get_level(PIN_BTN_TEST);
-        bool cur_mode = gpio_get_level(PIN_BTN_MODE);
+        bool cur_test  = gpio_get_level(PIN_BTN_TEST);
+        bool cur_mode  = gpio_get_level(PIN_BTN_MODE);
+        bool cur_ring  = gpio_get_level(PIN_RING_DETECT);
 
-        // Falling edge → button just pressed
-        if (prev_test && !cur_test) {
-            ESP_LOGI(TAG, "Test button pressed — sending ping");
-            espnow_ping_pkt_t pkt = {
-                .hdr = {
-                    .type    = ESPNOW_PKT_PING,
-                    .node_id = DRUM_NODE_ID,
-                    .seq     = ++btn_seq,
-                },
-            };
-            esp_err_t err = espnow_transport_broadcast(&pkt, sizeof(pkt));
-            if (err == ESP_OK) {
-                s_active_cycles = ACTIVE_BLINK_CYCLES;  // visual confirmation
-            } else {
-                ESP_LOGW(TAG, "Button ping failed: %s", esp_err_to_name(err));
+        // --- Test button ---
+        if (!cur_test) {
+            // Button is held — accumulate time
+            test_held_ms += 20;
+            if (test_held_ms == 5000) {
+                // Phase 2: clear Core Node MAC from NVS and reboot
+                ESP_LOGW(TAG, "Test button held 5s — re-pairing mode (Phase 2 TODO)");
             }
+        } else {
+            if (!prev_test) {
+                // Rising edge: button released after a short press
+                if (test_held_ms < 5000) {
+                    ESP_LOGI(TAG, "Test button pressed — sending ping");
+                    espnow_ping_pkt_t pkt = {
+                        .hdr = {
+                            .type    = ESPNOW_PKT_PING,
+                            .node_id = DRUM_NODE_ID,
+                            .seq     = ++btn_seq,
+                        },
+                    };
+                    esp_err_t err = espnow_transport_broadcast(&pkt, sizeof(pkt));
+                    if (err == ESP_OK) {
+                        s_active_cycles = ACTIVE_BLINK_CYCLES;
+                    } else {
+                        ESP_LOGW(TAG, "Ping failed: %s", esp_err_to_name(err));
+                    }
+                }
+            }
+            test_held_ms = 0;
         }
 
+        // --- Mode button ---
         if (prev_mode && !cur_mode) {
             // Phase 2: cycle g_current_mode and apply to LED strip
             ESP_LOGI(TAG, "Mode button pressed (Phase 2: lighting mode cycle)");
         }
 
+        // --- Ring detect — log cable type on change for wiring verification ---
+        if (cur_ring != prev_ring) {
+            ESP_LOGI(TAG, "TRS cable type: %s",
+                     cur_ring ? "mono TS (ring shorted)" : "stereo TRS");
+        }
+
         prev_test = cur_test;
         prev_mode = cur_mode;
+        prev_ring = cur_ring;
 
-        // 20 ms poll gives clean debounce without needing a hardware RC filter
         vTaskDelay(pdMS_TO_TICKS(20));
     }
 }
 
 /**
- * Sends a periodic ESPNOW_PKT_PING so the Core Node sees this drum node
- * in its serial log before full PAIR_REQ / PAIR_ACK is implemented.
- * Priority 4 — higher than UI-bound tasks, lower than a future ISR trigger.
+ * Sends a periodic ESPNOW_PKT_PING heartbeat so the Core Node can detect
+ * this drum node in its serial log before full PAIR_REQ/ACK is implemented.
  */
 static void heartbeat_task(void *arg)
 {
@@ -205,20 +247,17 @@ void app_main(void)
     ESP_LOGI(TAG, "  ADLS Drum Node  |  node_id=%u  |  booting...", DRUM_NODE_ID);
     ESP_LOGI(TAG, "=================================================");
 
-    // Init transport before any task tries to send
     ESP_ERROR_CHECK(espnow_transport_init());
     espnow_transport_set_recv_cb(on_recv);
 
     ESP_LOGI(TAG, "ESP-NOW ready");
 
-    // blink_task     — LED heartbeat, visual activity indicator
-    // heartbeat_task — periodic broadcast so Core Node detects this node
-    // btn_poll_task  — D4 manual ping, D5 mode cycle placeholder
     xTaskCreate(blink_task,     "blink",     2048, NULL, 3, NULL);
     xTaskCreate(heartbeat_task, "heartbeat", 2048, NULL, 4, NULL);
     xTaskCreate(btn_poll_task,  "btns",      2048, NULL, 3, NULL);
 
-    ESP_LOGI(TAG, "All tasks started.");
-    ESP_LOGI(TAG, "  Onboard LED blinks 1 Hz at idle, fast on radio activity.");
-    ESP_LOGI(TAG, "  Press D4 to send a manual ping to the Core Node.");
+    ESP_LOGI(TAG, "Tasks started.");
+    ESP_LOGI(TAG, "  Onboard LED (GPIO21, active LOW): 1 Hz idle, fast on activity.");
+    ESP_LOGI(TAG, "  Press D3 to send a manual ping. Hold 5s to re-pair (Phase 2).");
+    ESP_LOGI(TAG, "  Plug in TRS cable — D2 ring detect will log cable type.");
 }
