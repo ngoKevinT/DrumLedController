@@ -1,0 +1,51 @@
+# ============================================================
+# sdkconfig.defaults — ADLS Drum Node (Seeed XIAO ESP32-S3)
+# ============================================================
+# These values seed a fresh sdkconfig. If sdkconfig already
+# exists from a previous build, delete it so IDF regenerates
+# from this file — existing sdkconfig silently wins over defaults.
+
+# ------------------------------------------------------------
+# Target
+# ------------------------------------------------------------
+CONFIG_IDF_TARGET="esp32s3"
+
+# ------------------------------------------------------------
+# Flash
+# XIAO ESP32-S3 ships with 8 MB flash
+# ------------------------------------------------------------
+CONFIG_ESPTOOLPY_FLASHSIZE_8MB=y
+CONFIG_ESPTOOLPY_FLASHSIZE="8MB"
+
+# ------------------------------------------------------------
+# Console output
+# XIAO ESP32-S3 has no separate UART-to-USB bridge.
+# All serial output goes through the built-in USB Serial/JTAG
+# peripheral — this is also how idf.py flash works via JTAG.
+# ------------------------------------------------------------
+CONFIG_ESP_CONSOLE_USB_SERIAL_JTAG=y
+
+# ------------------------------------------------------------
+# PSRAM
+# XIAO ESP32-S3 has NO PSRAM — do not enable SPIRAM.
+# (The Waveshare 7B Core Node has 8MB OPI PSRAM — different board.)
+# ------------------------------------------------------------
+# CONFIG_SPIRAM is intentionally NOT set
+
+# ------------------------------------------------------------
+# Watchdog
+# 10 s during bring-up — tighten to 3 s once ADC task is stable
+# ------------------------------------------------------------
+CONFIG_ESP_TASK_WDT_TIMEOUT_S=10
+
+# ------------------------------------------------------------
+# WiFi — power-save OFF is enforced at runtime by
+# espnow_transport_init() but confirm the sdkconfig default
+# won't re-enable it behind our back.
+# ------------------------------------------------------------
+CONFIG_ESP_WIFI_STA_DISCONNECTED_PM_ENABLE=n
+
+# ------------------------------------------------------------
+# Log level — INFO in production, DEBUG during bring-up
+# ------------------------------------------------------------
+CONFIG_LOG_DEFAULT_LEVEL_INFO=y
