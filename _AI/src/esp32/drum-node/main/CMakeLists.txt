@@ -2,8 +2,8 @@ idf_component_register(
     SRCS "main.c"
     INCLUDE_DIRS "."
     REQUIRES
-        # espnow_transport  # Phase 1 — uncomment when component is implemented
-        driver       # gpio_reset_pin, gpio_set_direction, gpio_set_level, etc.
-        # esp_log is omitted — it's the header name, not the cmake component name.
-        # The actual component is 'log', which IDF automatically adds to every build.
+        espnow_transport   # WiFi, ESP-NOW, NVS init — all via the shared component
+        driver             # gpio_reset_pin, gpio_set_direction, gpio_set_level, etc.
+        nvs_flash          # nvs_open/nvs_get_str/nvs_set_blob used in main.c directly
+        # esp_log is the header name; IDF adds the 'log' component automatically.
 )

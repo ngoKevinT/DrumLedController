@@ -34,8 +34,8 @@ typedef enum {
     ESPNOW_PKT_PING      = 0x01, /**< Phase 1: heartbeat / radio self-test     */
     ESPNOW_PKT_TELEMETRY = 0x02, /**< Phase 2: drum hit data  (drum → core)    */
     ESPNOW_PKT_CONFIG    = 0x03, /**< Phase 3: LED config push (core → drum)   */
-    ESPNOW_PKT_PAIR_REQ  = 0x10, /**< Phase 3: pairing broadcast (core → all)  */
-    ESPNOW_PKT_PAIR_ACK  = 0x11, /**< Phase 3: pairing reply   (drum → core)   */
+    ESPNOW_PKT_PAIR_REQ  = 0x10, /**< Phase 2: pairing broadcast (drum → all)  */
+    ESPNOW_PKT_PAIR_ACK  = 0x11, /**< Phase 2: pairing reply   (core → drum)   */
 } espnow_pkt_type_t;
 
 // ---------------------------------------------------------------------------
@@ -63,6 +63,18 @@ typedef struct {
     uint8_t      velocity;    /**< Normalised hit velocity (0-255)          */
 } espnow_telemetry_pkt_t;
 
+/** Phase 2 — pairing broadcast sent by drum node on boot until ACK received. */
+typedef struct {
+    espnow_hdr_t hdr;
+    char         name[16]; /**< Null-terminated node name, e.g. "Snare"    */
+} espnow_pair_req_pkt_t;
+
+/** Phase 2 — pairing reply sent by Core Node to the requesting drum node. */
+typedef struct {
+    espnow_hdr_t hdr;
+    char         name[16]; /**< Optional name override from Core Node; zero = keep drum's default */
+} espnow_pair_ack_pkt_t;
+
 /** Phase 3 — LED + trigger config pushed to a drum node on Save. */
 typedef struct {
     espnow_hdr_t hdr;
@@ -75,6 +87,7 @@ typedef struct {
     uint16_t     threshold;        /**< Sensitivity (0-1023)                */
     uint16_t     retrigger_ms;     /**< Retrigger guard (0-500 ms)          */
     uint8_t      hit_curve;        /**< hit_curve_t                         */
+    char         name[16];         /**< Non-empty = rename this node; zero = no rename */
 } espnow_config_pkt_t;
 
 #pragma pack(pop)

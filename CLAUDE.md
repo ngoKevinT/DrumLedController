@@ -165,13 +165,14 @@ Full details in `docs/hardware/pinout.md`. Critical pins only:
 | Pin | GPIO | Function |
 |-----|------|----------|
 | A0/D0 | 1  | Trigger ch1 — TRS Tip (piezo input, 10kΩ series + Zener + Schottky) |
-| A1/D1 | 2  | Trigger ch2 — TRS Ring (second piezo or hi-hat choke) |
-| A2/D2 | 3  | Ring detect — TRS normalling contact (HIGH=TS, LOW=TRS) |
-| D3  | 4  | Test button (INPUT_PULLUP — 5s hold triggers re-pairing) |
-| D4  | 5  | Mode button (INPUT_PULLUP — cycles lighting mode) |
-| D5  | 6  | Reserved — NTC thermistor (Phase 7 thermal management) |
-| D7  | 44 | Red LED — 80ms flash on trigger, solid on continuous noise |
-| D8  | 7  | Blue LED — blink=searching, solid=paired, 500ms=re-pairing |
+| A1/D1 | 2  | Trigger ch2 — TRS Ring (100kΩ pull-down to GND; software ring detect) |
+| A2/D2 | 3  | Test button (INPUT_PULLUP — 5s hold triggers re-pairing) |
+| D3  | 4  | Mode button (INPUT_PULLUP — cycles lighting mode) |
+| D4  | 5  | Reserved — NTC thermistor (Phase 7 thermal management) |
+| D5  | 6  | Blue LED — blink=searching, solid=paired, 500ms=re-pairing |
+| D6  | 43 | UART TX — free for debug (do not assign to peripherals) |
+| D7  | 44 | UART RX — free for debug (do not assign to peripherals) |
+| D8  | 7  | Red LED — 80ms flash on trigger, solid on continuous noise |
 | D9  | 8  | SK6812NW data out primary (330Ω series + ESD diode) |
 | D10 | 9  | SK6812NW data out secondary — future (330Ω series + ESD diode) |
 | —   | 21 | Onboard LED — active LOW, confirms logic rail live |

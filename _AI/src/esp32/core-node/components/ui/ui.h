@@ -39,6 +39,7 @@ typedef enum {
 typedef struct {
     /* Identity */
     char     name[24];           /**< Display name, e.g. "Kick"          */
+    uint8_t  mac[6];             /**< ESP-NOW MAC of this drum node; zero if not yet paired */
     bool     connected;          /**< Paired and responding               */
 
     /* Trigger / sensing */

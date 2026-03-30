@@ -34,23 +34,23 @@ static const gpio_num_t PIN_LED_ONBOARD = GPIO_NUM_21;
 // External 5mm LEDs: LED anode → pin, cathode → 220Ω → GND
 // ---------------------------------------------------------------------------
 
-/** D8 (GPIO 7) — blue, right side. Blink=searching, solid=paired, 500ms blink=re-pairing */
-static const gpio_num_t PIN_LED_BLUE = GPIO_NUM_7;
+/** D5 (GPIO 6) — blue, left side. Blink=searching, solid=paired, 500ms blink=re-pairing */
+static const gpio_num_t PIN_LED_BLUE = GPIO_NUM_6;
 
-/** D7 (GPIO 44) — red, right side. 80ms flash on trigger, solid during continuous noise */
-static const gpio_num_t PIN_LED_RED  = GPIO_NUM_44;
+/** D8 (GPIO 7) — red, right side. 80ms flash on trigger, solid during continuous noise */
+static const gpio_num_t PIN_LED_RED  = GPIO_NUM_7;
 
 // ---------------------------------------------------------------------------
 // User buttons  (left side — quiet digital, away from LED switching noise)
 // Normally-open SPST, connect pin to GND — INPUT_PULLUP active inside firmware
 // ---------------------------------------------------------------------------
 
-/** D3 (GPIO 4) — test button. Single press fires trigger manually.
+/** A2/D2 (GPIO 3) — test button. Single press fires trigger manually.
  *  5-second hold triggers re-pairing mode. */
-static const gpio_num_t PIN_BTN_TEST = GPIO_NUM_4;
+static const gpio_num_t PIN_BTN_TEST = GPIO_NUM_3;
 
-/** D4 (GPIO 5) — mode button. Cycles local lighting mode. */
-static const gpio_num_t PIN_BTN_MODE = GPIO_NUM_5;
+/** D3 (GPIO 4) — mode button. Cycles local lighting mode. */
+static const gpio_num_t PIN_BTN_MODE = GPIO_NUM_4;
 
 // ---------------------------------------------------------------------------
 // Trigger inputs  (left side — short analog traces, minimal switching coupling)
@@ -60,13 +60,11 @@ static const gpio_num_t PIN_BTN_MODE = GPIO_NUM_5;
 /** A0/D0 (GPIO 1) — trigger channel 1, TRS Tip.  Primary piezo input. */
 static const gpio_num_t PIN_TRIGGER_CH1 = GPIO_NUM_1;
 
-/** A1/D1 (GPIO 2) — trigger channel 2, TRS Ring.  Second piezo or hi-hat choke. */
+/** A1/D1 (GPIO 2) — trigger channel 2, TRS Ring.  Second piezo or hi-hat choke.
+ *  Hardware: 100kΩ pull-down to GND after clamp diodes.  When no TRS plug is
+ *  present the ring line floats low → software reads near-zero ADC → no trigger.
+ *  No dedicated ring-detect pin needed; jack is standard 3-lug (no normalling). */
 static const gpio_num_t PIN_TRIGGER_CH2 = GPIO_NUM_2;
-
-/** A2/D2 (GPIO 3) — TRS normalling contact (ring detect).
- *  HIGH = mono TS cable inserted (ring shorted to sleeve).
- *  LOW  = stereo TRS cable inserted (ring floating). */
-static const gpio_num_t PIN_RING_DETECT = GPIO_NUM_3;
 
 // ---------------------------------------------------------------------------
 // LED strip data  (right side)
@@ -83,8 +81,8 @@ static const gpio_num_t PIN_LED_DATA2   = GPIO_NUM_9;
 // Reserved / unassigned
 // ---------------------------------------------------------------------------
 
-/** D5 (GPIO 6) — reserved for NTC thermistor (Phase 7 thermal management) */
-static const gpio_num_t PIN_NTC         = GPIO_NUM_6;
+/** D4 (GPIO 5) — reserved for NTC thermistor (Phase 7 thermal management) */
+static const gpio_num_t PIN_NTC         = GPIO_NUM_5;
 
-/** D6 (GPIO 43) — unassigned (TX line, avoid unless UART is unused) */
-// static const gpio_num_t PIN_SPARE    = GPIO_NUM_43;
+/** D6/TX (GPIO 43) and D7/RX (GPIO 44) — kept free for UART debug output.
+ *  Do not assign to peripherals. */

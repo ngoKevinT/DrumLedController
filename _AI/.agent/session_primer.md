@@ -41,9 +41,10 @@ Examples:
 
 - No `delay()` anywhere — `millis()`, `micros()`, or FreeRTOS only
 - LED data pin is **D9** (GPIO8) primary, **D10** (GPIO9) future — never D0
-- Trigger pins: **A0/D0** (GPIO1) ch1, **A1/D1** (GPIO2) ch2, **A2/D2** (GPIO3) ring detect — all left side
-- Status LEDs: **D8** (GPIO7) blue, **D7** (GPIO44) red — right side, away from analog
-- Buttons: **D3** (GPIO4) test, **D4** (GPIO5) mode — left side, quiet digital
+- Trigger pins: **A0** (GPIO1) ch1, **A1/D1** (GPIO2) ch2 with 100kΩ pull-down — software ring detect, no normalling contact
+- Buttons: **A2/D2** (GPIO3) test, **D3** (GPIO4) mode — left side, quiet digital
+- Status LEDs: **D5** (GPIO6) blue, **D8** (GPIO7) red — blue left side, red right side
+- UART reserved: **D6/TX** (GPIO43) and **D7/RX** (GPIO44) — kept free for debug
 - LVGL version is **v8.4** — do not use v9 APIs
 - Per-node power cap: `FastLED.setMaxPowerInVoltsAndMilliamps(5, 2500)`
 - PSRAM required for LVGL draw buffer — check `psramInit()` on boot

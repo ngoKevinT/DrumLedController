@@ -1,7 +1,7 @@
 idf_component_register(
     SRCS "main.c"
     INCLUDE_DIRS "."
-    REQUIRES ui espnow_transport lvgl_port rgb_lcd_port touch spiffs
+    REQUIRES ui espnow_transport lvgl_port rgb_lcd_port touch spiffs nvs_flash
     WHOLE_ARCHIVE
 )
 

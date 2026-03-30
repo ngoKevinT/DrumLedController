@@ -41,19 +41,21 @@
    │  → 5V 3A buck   │        │  → 5V 3A buck   │
    │  → 100nF VCC    │        │  → 100nF VCC    │
    │                 │        │                 │
-   │ A0 ← piezo      │        │ A0 ← piezo      │
+   │ A0 ← piezo ch1  │        │ A0 ← piezo ch1  │
    │   10kΩ + Zener  │        │   10kΩ + Zener  │
    │   + Schottky    │        │   + Schottky    │
+   │ A1 ← piezo ch2  │        │ A1 ← piezo ch2  │
+   │   + 100kΩ GND   │        │   + 100kΩ GND   │
    │                 │        │                 │
-   │ D0 → 330Ω       │        │ D0 → 330Ω       │
+   │ D9 → 330Ω       │        │ D9 → 330Ω       │
    │   → ESD diode   │        │   → ESD diode   │
    │   → SK6812NW    │        │   → SK6812NW    │
    │     (JST-XH)    │        │     (JST-XH)    │
    │                 │        │                 │
-   │ D1 → Blue LED   │        │ D1 → Blue LED   │
-   │ D2 → Red LED    │        │ D2 → Red LED    │
-   │ D4 ← Test btn   │        │ D4 ← Test btn   │
-   │ D5 ← Mode btn   │        │ D5 ← Mode btn   │
+   │ D5 → Blue LED   │        │ D5 → Blue LED   │
+   │ D8 → Red LED    │        │ D8 → Red LED    │
+   │ A2/D2 ← Test    │        │ A2/D2 ← Test    │
+   │ D3 ← Mode btn   │        │ D3 ← Mode btn   │
    └─────────────────┘        └─────────────────┘
 ```
 
@@ -109,23 +111,23 @@ loop()
 ### Drum Node
 ```
 setup()
-├── FastLED.addLeds<SK6812, D0, GRB>().setRgbw(RgbwDefault())
+├── FastLED.addLeds<SK6812, D9, GRB>().setRgbw(RgbwDefault())
 ├── FastLED.setBrightness(255)
 ├── ESP-NOW init → register receive callback
 ├── NVS load → restore last sensitivity, mode, color
-├── pinMode(D4, INPUT_PULLUP)   — test button
-├── pinMode(D5, INPUT_PULLUP)   — mode button
+├── pinMode(A2/D2, INPUT_PULLUP)  — test button (GPIO3)
+├── pinMode(D3, INPUT_PULLUP)     — mode button (GPIO4)
 └── start FreeRTOS tasks
 
 FreeRTOS tasks
 ├── task_trigger (HIGH priority)
-│   └── Sample ADC1 A0 at >1kHz → peak detect → fire LEDs → notify Core
+│   └── Sample ADC1 A0/A1 at >1kHz → peak detect → fire LEDs → notify Core
 ├── task_led_engine (MEDIUM priority)
 │   └── Run active lighting mode → FastLED.show()
 ├── task_espnow_rx (MEDIUM priority)
 │   └── Receive DrumState → update local state → NVS save if changed
 └── task_buttons (LOW priority)
-    └── Poll D4/D5 → debounce → cycle mode or fire test trigger
+    └── Poll A2/D2 + D3 → debounce → cycle mode or fire test trigger
 ```
 
 ---
@@ -176,7 +178,7 @@ These are locked. Do not re-open without a documented reason.
 | Charging topology | UPS (CC/CV + common-port BMS) | System runs while charging; seamless battery/wall switchover |
 | Core Node board | Waveshare ESP32-S3-Touch-LCD-7B | 1024×600, GT911 touch, integrated — no wiring between MCU and display |
 | Drum Node board | Seeed Studio XIAO ESP32-S3 | Smallest ESP32-S3 form factor; sufficient I/O; 5V pin; USB-C |
-| LED data pin | D0 | RMT/DMA capable; avoids SPI/I2C conflicts |
+| LED data pin | D9 (GPIO8) primary, D10 (GPIO9) future | RMT/DMA capable; avoids SPI/I2C conflicts |
 | LED connector | JST-XH 3-pin (or 4-pin) | 3A/contact; field-replaceable strips without soldering iron |
 | SP13 protection | P6KE24A TVS diode | Clamps hot-plug inductive spikes before they reach buck VIN |
 | XIAO decoupling | 100nF 0603 ceramic ≤3mm from VCC | Prevents ADC noise, brown-out resets, ESP-NOW corruption under load |

@@ -35,7 +35,7 @@
 ### Drum Node (× number of drums)
 | Component | Part | Spec |
 |---|---|---|
-| MCU | Seeed Studio XIAO ESP32-S3 | Dual-core · 5V pin · D9/D10 LED data · A0/D1 trigger · D2 ring detect · D8/D7 status LEDs · D3/D4 buttons |
+| MCU | Seeed Studio XIAO ESP32-S3 | Dual-core · 5V pin · D9/D10 LED data · A0/A1(D1) trigger · D5/D8 status LEDs · A2(D2)/D3 buttons · D6(TX)/D7(RX) free |
 | LED strip | SK6812NW 60 LED/m | 5V · RGBW · Natural White ~4000K |
 | Input connector | SP13 90° 2-pin | Pin 1: 14.8–20V in · Pin 2: GND |
 | LED connector | 4× direct solder pads at board edge | 5V · GND · Data1 · Data2 |
@@ -48,14 +48,15 @@
 | Schottky diode | 1N5817 | Anode → GND · Cathode → signal · clamps negative ringing |
 | Data resistor | 330Ω 1/4W | Series on D9 → LED DIN · prevents signal ringing (D10 future) |
 | ESD diode | PRTR5V0U2X | On D9/D10 data lines — ESD protection |
-| Trigger jack | 1/4" TRS Panel Mount | Dual-channel piezo input · switched jack with normalling contact |
+| Trigger jack | 1/4" TRS Panel Mount | Dual-channel piezo input · standard 3-lug (tip/ring/sleeve), no normalling needed |
+| Ch2 pull-down | 100kΩ 1/4W | After clamp diodes on A1/D1 — pulls to GND when no TRS plug present · software ring detect |
 | LED amber | 5mm Amber + 1kΩ | Hardwired to high rail (pre-buck) — SP13 power present |
-| LED blue | 5mm Blue + 220Ω | XIAO D8 — blink=searching · solid=connected · 500ms blink=re-pairing |
-| LED red | 5mm Red + 220Ω | XIAO D7 — 80ms flash on trigger · solid during continuous noise |
+| LED blue | 5mm Blue + 220Ω | XIAO D5 — blink=searching · solid=connected · 500ms blink=re-pairing |
+| LED red | 5mm Red + 220Ω | XIAO D8 — 80ms flash on trigger · solid during continuous noise |
 | LED green (onboard) | XIAO onboard LED (GPIO21) | Active LOW — replaces external green LED · logic rail live |
 | LED holders | 5mm Plastic Socket × 3 | Panel mount (amber, blue, red — green is onboard) |
-| Test button | Gebildet 7mm SPST NO | XIAO D3 — fires trigger manually · 5s hold → re-pairing mode |
-| Mode button | Gebildet 7mm SPST NO | XIAO D4 — cycles local color mode |
+| Test button | Gebildet 7mm SPST NO | XIAO A2/D2 — fires trigger manually · 5s hold → re-pairing mode |
+| Mode button | Gebildet 7mm SPST NO | XIAO D3 — cycles local color mode |
 | Internal wire | 18AWG High-Strand Silicone | All internal connections — vibration resistant |
 | Trunk cable | 18AWG Silicone + Techflex Clean-Cut sleeve | Core Node → drum SP13 runs |
 | PCB mount | 4× M2 TPU standoffs | Isolates PCB from drum shell vibration |
@@ -118,14 +119,13 @@
   - Buck VOUT (5V) → 100nF 0805 ceramic cap (across to GND, placed ≤3mm from XIAO VCC)
   - 5V rail → XIAO VCC pin, SK6812NW VCC, LED indicators (via resistors)
   - Trigger ch1: ¼" TRS Tip → 10kΩ series → 1N4728A Zener (C→signal, A→GND) → 1N5817 Schottky (A→GND, C→signal) → XIAO A0 (GPIO1)
-  - Trigger ch2: ¼" TRS Ring → same protection chain → XIAO D1 (GPIO2) — TRS only
-  - Ring detect: TRS normalling contact → XIAO D2 (GPIO3, internal pull-up)
+  - Trigger ch2: ¼" TRS Ring → same protection chain → 100kΩ pull-down to GND → XIAO A1/D1 (GPIO2) — software ring detect
   - LED data 1: XIAO D9 (GPIO8) → 330Ω → PRTR5V0U2X ESD → LED bus Data1 pad
   - LED data 2: XIAO D10 (GPIO9) → 330Ω → PRTR5V0U2X ESD → LED bus Data2 pad (future)
-  - XIAO D8 → 220Ω → Blue LED → GND
-  - XIAO D7 → 220Ω → Red LED → GND
-  - XIAO D3 ← Test button → GND (internal pull-up) · 5s hold → re-pairing mode
-  - XIAO D4 ← Mode button → GND (internal pull-up)
+  - XIAO D5 → 220Ω → Blue LED → GND
+  - XIAO D8 → 220Ω → Red LED → GND
+  - XIAO A2/D2 ← Test button → GND (internal pull-up) · 5s hold → re-pairing mode
+  - XIAO D3 ← Mode button → GND (internal pull-up)
   - Amber LED: tap pre-buck VCC → 1kΩ → LED → GND
   - Green LED: eliminated — use XIAO onboard LED (GPIO21, active LOW)
 - [ ] Route power traces ≥ 25mil for 5V and GND
@@ -239,7 +239,7 @@
   - [ ] `STEALTH` — all LEDs off, diagnostic LEDs still active
 
 - [ ] **Mode state machine (Drum Node)**
-  - [ ] Cycle through modes on Mode button press (D4)
+  - [ ] Cycle through modes on Mode button press (D3)
   - [ ] Override local mode if Core Node broadcasts a global palette change
   - [ ] Save current mode index to NVS after button press
 
@@ -284,10 +284,10 @@
 - **TVS diode on SP13 input**: P6KE24A — protects buck converter from hot-plug inductive spikes
 - **100nF ceramic cap on XIAO VCC**: 0805 package, placed ≤3mm from VCC pin — high-frequency decoupling
 - **LED data pins**: D9 (GPIO8) primary, D10 (GPIO9) future — both with 330Ω series + PRTR5V0U2X ESD
-- **Dual-channel trigger**: TRS jack with normalling contact — Tip (A0/GPIO1), Ring (D1/GPIO2), Ring detect (D2/GPIO3) — all on left side for short analog traces
+- **Dual-channel trigger**: TRS jack (standard 3-lug, no normalling needed) — Tip (A0/GPIO1), Ring (A1/D1/GPIO2) with 100kΩ pull-down for software ring detect
 - **Green LED eliminated**: replaced by XIAO onboard LED (GPIO21, active LOW)
 - **Amber LED resistor**: 1kΩ (pre-buck rail tap, not 220Ω)
-- **Buttons**: Gebildet 7mm SPST NO panel-mount — Test (D3) with 5s hold re-pairing, Mode (D4)
-- **Status LEDs on right side**: Blue (D8/GPIO7), Red (D7/GPIO44) — keeps switching noise away from analog trigger pins on left
-- **GPIO optimization**: Left side = analog/quiet (trigger, ring detect, buttons), Right side = digital output (LED data, status LEDs) — ground pour between rows acts as guard band
-- **Free pins**: D5 (GPIO6, left side) reserved for NTC thermistor, D6 (GPIO43, right side) unassigned
+- **Buttons**: Gebildet 7mm SPST NO panel-mount — Test (A2/D2) with 5s hold re-pairing, Mode (D3)
+- **Status LEDs on right side**: Blue (D5/GPIO6), Red (D8/GPIO7) — keeps switching noise away from analog trigger pins on left
+- **GPIO optimization**: Left side = analog/quiet (A0 trigger ch1, A1/D1 trigger ch2, A2/D2 test btn, D3 mode btn, D4 free/NTC, D5 blue LED), Right side = digital output (D10/D9 LED data, D8 red LED) + UART (D7/RX, D6/TX free)
+- **Free pins**: D4 (GPIO5, left side) reserved for NTC thermistor, D6/TX (GPIO43) and D7/RX (GPIO44) reserved for UART debug

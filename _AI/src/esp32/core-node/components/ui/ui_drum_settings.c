@@ -31,8 +31,12 @@
 
 #include <string.h>
 #include "lvgl.h"
+#include "esp_log.h"
 #include "ui_drum_settings.h"
 #include "ui.h"
+#include "espnow_transport.h"
+
+static const char *TAG_SAVE = "ui_drum_save";
 
 // ---------------------------------------------------------------------------
 // Slider ranges
@@ -254,19 +258,58 @@ static void save_hide_cb(lv_timer_t *t)
 
 static void cb_save(lv_event_t *e)
 {
+    ui_drum_t *d = &g_drums[g_selected_drum];
+
     // Commit the name from the textarea
     const char *new_name = lv_textarea_get_text(ta_name);
     if (new_name && new_name[0] != '\0') {
-        strncpy(g_drums[g_selected_drum].name, new_name,
-                sizeof(g_drums[0].name) - 1);
-        g_drums[g_selected_drum].name[sizeof(g_drums[0].name) - 1] = '\0';
+        strncpy(d->name, new_name, sizeof(d->name) - 1);
+        d->name[sizeof(d->name) - 1] = '\0';
     }
 
     // Hide keyboard if still open
     lv_obj_add_flag(keyboard, LV_OBJ_FLAG_HIDDEN);
     lv_keyboard_set_textarea(keyboard, NULL);
 
-    // TODO: transmit g_drums[g_selected_drum] to drum node via BLE/ESP-NOW
+    // Transmit full config to the drum node if it is paired.
+    // esp_now_send() is non-blocking (copies data into the WiFi driver's
+    // internal buffer and returns immediately), so calling it from the LVGL
+    // task while holding lvgl_port_lock is safe — no deadlock risk.
+    static const uint8_t k_zero_mac[6] = {0};
+    if (d->connected && memcmp(d->mac, k_zero_mac, 6) != 0) {
+        espnow_config_pkt_t pkt = {
+            .hdr = {
+                .type    = ESPNOW_PKT_CONFIG,
+                .node_id = 0,   // 0 = Core Node (sender)
+                .seq     = 0,
+            },
+            .mode_idx         = d->mode_idx,
+            .color            = d->color,
+            .idle_brightness  = d->idle_brightness,
+            .flash_brightness = d->flash_brightness,
+            .flash_time_ms    = d->flash_time_ms,
+            .decay_time_ms    = d->decay_time_ms,
+            .threshold        = d->threshold,
+            .retrigger_ms     = d->retrigger_ms,
+            .hit_curve        = d->hit_curve,
+        };
+        // Always include the current name — drum saves it to NVS if it changed.
+        strncpy(pkt.name, d->name, sizeof(pkt.name) - 1);
+
+        esp_err_t err = espnow_transport_send(d->mac, &pkt, sizeof(pkt));
+        if (err == ESP_OK) {
+            ESP_LOGI(TAG_SAVE, "CONFIG sent to \"%s\" [%02x:%02x:%02x:%02x:%02x:%02x]",
+                     d->name,
+                     d->mac[0], d->mac[1], d->mac[2],
+                     d->mac[3], d->mac[4], d->mac[5]);
+        } else {
+            ESP_LOGE(TAG_SAVE, "CONFIG send failed for \"%s\": %s",
+                     d->name, esp_err_to_name(err));
+        }
+    } else {
+        ESP_LOGW(TAG_SAVE, "Save: \"%s\" not connected or no MAC — config not transmitted",
+                 d->name);
+    }
 
     // Show "✓ Saved" for 2 seconds
     lv_obj_clear_flag(lbl_saved, LV_OBJ_FLAG_HIDDEN);
