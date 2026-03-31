@@ -14,8 +14,8 @@
 
 | Pin | GPIO | Function | Description |
 | :--- | :--- | :--- | :--- |
-| **A0/D0** | 1 | ADC1_CH0 | **Trigger ch1 — TRS Tip.** Protected by 10kΩ series + 1N4728A Zener (3.3V) + 1N5817 Schottky. |
-| **A1/D1** | 2 | ADC1_CH1 | **Trigger ch2 — TRS Ring.** Same protection chain + 100kΩ pull-down to GND. Software ring detect — line reads near-zero when no TRS plug present. |
+| **A0/D0** | 1 | ADC1_CH0 | **Trigger ch1 — TRS Tip.** Protected by 10kΩ SMD 0805 series + BZT52C3V3S Zener SOD-123 (3.3V) + B5817WS Schottky SOD-123. |
+| **A1/D1** | 2 | ADC1_CH1 | **Trigger ch2 — TRS Ring.** Same protection chain + 100kΩ SMD 0805 pull-down to GND. Software ring detect — line reads near-zero when no TRS plug present. |
 | **A2/D2** | 3 | GPIO In | **Test Button** — Gebildet 7mm SPST NO, internal pull-up. Short press: manual trigger test. 5s hold: clears Core MAC from NVS, reboots to re-pair. |
 | **D3** | 4 | GPIO In | **Mode Button** — Gebildet 7mm SPST NO, internal pull-up. Cycles local lighting mode. |
 | **D4** | 5 | ADC1_CH4 | **Reserved — NTC thermistor** (Phase 7 thermal management). |
@@ -80,9 +80,10 @@ Internal routing: TA4F panel socket → short wire run → **JST-XH 4-pin header
 
 ## 5. Electrical Safety Notes
 
-* **TVS on SP13 input (Drum Node):** P6KE24A across SP13 Pin 1/2. Clamps hot-plug inductive spikes before they reach the buck converter. Required — drums are connected/disconnected at every show.
-* **100nF decoupling cap:** 0603 ceramic on XIAO VCC, placed ≤3mm from the VCC pin and routed before any other power traces. Prevents ADC noise, ESP-NOW packet corruption, and brown-out resets during high-speed LED updates.
-* **Piezo protection trio:** 10kΩ series + 1N4728A Zener (cathode→signal) + 1N5817 Schottky (anode→GND). All three required for reliable hit detection without GPIO damage.
+* **TVS on SP13 input (Drum Node):** P6KE24A (through-hole DO-15) across SP13 Pin 1/2. Clamps hot-plug inductive spikes before they reach the buck converter. Required — drums are connected/disconnected at every show. Stays through-hole: the DO-15 package has sufficient thermal mass for the 600W transient rating; SMD equivalents at this power class are larger, more expensive, and less reliable here.
+* **Input cap:** 1000µF 25V radial electrolytic (through-hole). After TVS, before buck VIN. Stays through-hole — radial leads absorb vibration; secure with a dab of silicone on the body.
+* **100nF decoupling cap:** SMD 0603 ceramic on XIAO VCC, placed ≤3mm from the VCC pin and routed before any other power traces. Prevents ADC noise, ESP-NOW packet corruption, and brown-out resets during high-speed LED updates.
+* **Piezo protection trio:** 10kΩ SMD 0805 series + BZT52C3V3S Zener SOD-123 (cathode→signal) + B5817WS Schottky SOD-123 (anode→GND). All three required for reliable hit detection without GPIO damage. BZT52C3V3S and B5817WS are SMD replacements for the original 1N4728A and 1N5817 — same electrical specs.
 * **Data lines:** 330Ω series resistor on D9 (primary) and D10 (future), placed close to XIAO. PRTR5V0U2X ESD diode between resistor output and SK6812NW DIN.
 * **No LED current through XIAO traces:** 5V and GND for SK6812NW connect directly to buck output, not through XIAO pads. XIAO provides data signal only.
 * **Ideal diode GND pad (Core Node):** Both ideal diode modules require GND pad → star ground (22AWG). Powers internal controller IC. Without it the MOSFET stays off and no current flows.

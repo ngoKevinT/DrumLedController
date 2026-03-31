@@ -193,18 +193,26 @@ Full details in `docs/hardware/pinout.md`. Critical pins only:
 ## 7. Protection Components — Must Be Present on Drum Node PCB
 
 These are confirmed locked-in hardware decisions. Do not omit them from any
-schematic review or BOM generation:
+schematic review or BOM generation.
 
-| Component | Value | Placement | Purpose |
-|-----------|-------|-----------|---------|
-| TVS diode | P6KE24A | Across SP13 Pin 1/2 | Clamps hot-plug inductive spikes |
-| Input cap | 1000µF 25V electrolytic | After TVS, before buck VIN | Anti-flicker reservoir |
-| Decoupling cap | 100nF 0603 ceramic | ≤3mm from XIAO VCC pin | High-freq noise suppression |
-| Piezo resistor | 10kΩ 1/4W | Series on A0 (ch1) and D1 (ch2) signal lines | Current limits piezo signal |
-| Zener diode | 1N4728A 3.3V | Cathode→signal, Anode→GND (both trigger channels) | Clamps positive piezo spikes |
-| Schottky diode | 1N5817 | Anode→GND, Cathode→signal (both trigger channels) | Clamps negative ringing |
-| Data resistor | 330Ω 1/4W | Series on D9 (primary) and D10 (future), close to XIAO | Prevents signal ringing |
-| ESD diode | PRTR5V0U2X | D9 and D10 data lines | ESD protection on LED data |
+**PCB package strategy: hybrid SMD/through-hole.** Passives and small-signal diodes
+move to SMD. The P6KE24A TVS and 1000µF input cap stay through-hole — the TVS needs
+the thermal mass of DO-15 to handle 600W transient spikes reliably, and the radial cap
+needs mechanical resilience (lead flex + silicone dab) for vibration on a drum rig.
+
+| Component | Part / Value | Package | Placement | Purpose |
+|-----------|-------------|---------|-----------|---------|
+| TVS diode | P6KE24A | **Through-hole DO-15** | Across SP13 Pin 1/2 | Clamps hot-plug inductive spikes — stays TH for thermal mass |
+| Input cap | 1000µF 25V electrolytic | **Through-hole radial** | After TVS, before buck VIN | Anti-flicker reservoir — stays TH for vibration resistance |
+| Decoupling cap | 100nF ceramic | SMD 0603 | ≤3mm from XIAO VCC pin | High-freq noise suppression |
+| Piezo resistors | 10kΩ | SMD 0805 | Series on A0 (ch1) and A1 (ch2) signal lines | Current-limits piezo signal |
+| Pull-down resistor | 100kΩ | SMD 0805 | A1/D1 ring line to GND | Keeps ch2 at GND when no TRS plug inserted |
+| Zener diode | BZT52C3V3S 3.3V | SMD SOD-123 | Cathode→signal, Anode→GND (both trigger channels) | Clamps positive piezo spikes (replaces 1N4728A) |
+| Schottky diode | B5817WS | SMD SOD-123 | Anode→GND, Cathode→signal (both trigger channels) | Clamps negative ringing (replaces 1N5817) |
+| Data resistors | 330Ω | SMD 0805 | Series on D9 (primary) and D10 (future), close to XIAO | Prevents signal ringing |
+| LED resistors | 220Ω | SMD 0805 | Series on D5 (blue) and D8 (red) | Current-limits status LEDs |
+| Amber LED resistor | 1kΩ | SMD 0805 | SP13 Pin 1 → amber LED → GND | Pre-buck power indicator |
+| ESD diode | PRTR5V0U2X | SMD SOT-363 | D9 and D10 data lines | ESD protection on LED data |
 
 ---
 

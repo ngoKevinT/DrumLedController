@@ -180,7 +180,10 @@ These are locked. Do not re-open without a documented reason.
 | Drum Node board | Seeed Studio XIAO ESP32-S3 | Smallest ESP32-S3 form factor; sufficient I/O; 5V pin; USB-C |
 | LED data pin | D9 (GPIO8) primary, D10 (GPIO9) future | RMT/DMA capable; avoids SPI/I2C conflicts |
 | LED connector | JST-XH 3-pin (or 4-pin) | 3A/contact; field-replaceable strips without soldering iron |
-| SP13 protection | P6KE24A TVS diode | Clamps hot-plug inductive spikes before they reach buck VIN |
+| SP13 protection | P6KE24A TVS diode (through-hole DO-15) | Clamps hot-plug inductive spikes before they reach buck VIN; stays through-hole for thermal mass at 600W transient rating |
+| Input reservoir | 1000µF 25V radial electrolytic (through-hole) | Anti-flicker cap; stays through-hole — radial leads flex under vibration, secured with silicone dab |
+| Signal diodes | BZT52C3V3S zener (SOD-123), B5817WS schottky (SOD-123) | SMD replacements for 1N4728A and 1N5817; same specs, smaller footprint |
+| Drum Node PCB strategy | Hybrid SMD/through-hole | Passives + small-signal diodes go SMD (0805/SOD-123); TVS and input cap stay through-hole for thermal/mechanical reasons |
 | XIAO decoupling | 100nF 0603 ceramic ≤3mm from VCC | Prevents ADC noise, brown-out resets, ESP-NOW corruption under load |
 | Sensitivity control | Software via ESP-NOW | Central control from Core Node UI; persisted in NVS on each node |
 | Local power switch | None on Drum Nodes | Core Node is sole kill switch — prevents accidental mid-show shutoff |
