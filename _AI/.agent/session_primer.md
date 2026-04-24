@@ -50,6 +50,7 @@ Examples:
 - PSRAM required for LVGL draw buffer — check `psramInit()` on boot
 - All GPIO numbers come from `pinout.h` constants — never hardcoded inline
 - FastLED minimum version: **3.7.7** (required for `.setRgbw()` on SK6812NW)
+- No reverse polarity MOSFET on Core Node — removed; redundant with XT60 connectors, BMS, and ideal diode
 
 ---
 

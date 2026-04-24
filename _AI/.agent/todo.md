@@ -291,3 +291,5 @@
 - **Status LEDs on right side**: Blue (D5/GPIO6), Red (D8/GPIO7) — keeps switching noise away from analog trigger pins on left
 - **GPIO optimization**: Left side = analog/quiet (A0 trigger ch1, A1/D1 trigger ch2, A2/D2 test btn, D3 mode btn, D4 free/NTC, D5 blue LED), Right side = digital output (D10/D9 LED data, D8 red LED) + UART (D7/RX, D6/TX free)
 - **Free pins**: D4 (GPIO5, left side) reserved for NTC thermistor, D6/TX (GPIO43) and D7/RX (GPIO44) reserved for UART debug
+- **100nF ceramic cap on XIAO VCC**: 0603 package, placed ≤3mm from VCC pin — high-frequency decoupling
+- **No reverse polarity MOSFET on Core Node**: FQP27P06 P-ch MOSFET removed — redundant given polarized XT60 battery connectors, Daly BMS built-in protection, and ideal diode module on battery path. Three independent layers already cover this failure mode.
