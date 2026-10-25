@@ -73,6 +73,47 @@
 
 ---
 
+## ▶ Next Session: Start Here (saved 2026-10-24)
+
+### 1. Confirm every pin in use, and give the list to Claude
+Fill this in from the **physical wiring** on the bench, not from the docs, so we can compare it against `pinout.h`:
+
+| XIAO pin | GPIO (per `pinout.h`) | Actually wired to? |
+|---|---|---|
+| 5V | — | |
+| GND | — | |
+| 3V3 | — | |
+| A0/D0 | 1 (trigger ch1) | |
+| A1/D1 | 2 (trigger ch2) | |
+| A2/D2 | 3 (test button) | |
+| D3 | 4 (mode button) | |
+| D4 | 5 (NTC, reserved) | |
+| D5 | 6 (blue LED) | |
+| D6/TX | 43 (UART, free) | |
+| D7/RX | 44 (UART, free) | |
+| D8 | 7 (red LED) | |
+| D9 | 8 (strip ring 1 DIN) | |
+| D10 | 9 (strip ring 2 DIN) | |
+
+Also note: which strip end is DIN (arrow direction), where the strip's 5V and GND come from, and whether there's a series resistor on the data line.
+
+### 2. Get the LED strip to blink or turn on
+**Status:** the blinky + strip firmware built, flashed and **runs**. The serial log shows `Strips: 62 LEDs x 2 lines, white requested=128 governed=99 (cap 1200 mA)`. **But the strip did not light.**
+
+Checklist for next time, most likely causes first:
+- [ ] **Did the strip have power?** During flashing the XIAO was on USB only. If the strip's 5V comes from the buck, the strip was unpowered. Power the strip from the buck (SlimQ on, USB **off**), or from a separate 5V supply while on USB, always with a **shared GND**.
+- [ ] **Common ground:** strip GND, buck GND and XIAO GND must all connect.
+- [ ] **Data into the DIN end** (follow the arrows on the strip), not DOUT.
+- [ ] **Correct physical pin:** D9 = GPIO8 is the data line in firmware. Check against the XIAO silkscreen.
+- [ ] **Measure strip 5V** at its input with the system running (expect ~5.0V).
+- [ ] **3.3V data level:** without the AHCT buffer (PCB only), keep the data wire short (< 30 cm) and add a 330Ω resistor near the XIAO. If the first LED does nothing at all, try temporarily powering the strip at ~4.5V, which lowers VIH, to see whether data level is the issue.
+- [ ] **Byte order:** if it lights but shows the wrong color, the firmware assumes GRBW; run an R/G/B/W test pattern.
+- [ ] Ask Claude for a **steady-on test mode** (no blinking), to make multimeter checks and current calibration easier.
+
+**Uncommitted work:** `led_strip` dependency (`main/idf_component.yml`, `main/CMakeLists.txt`) and the strip flash in drum-node `main.c` (62 LEDs per line, power-limited to the 1200 mA bench cap). Branch: `design-review-derating`.
+
+---
+
 ## Open Conflicts & Unverified Assumptions (2026-10-24 review)
 
 Unresolved items where the docs, the code or the hardware disagree, or rest on something not yet verified.

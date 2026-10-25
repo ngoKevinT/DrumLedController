@@ -575,25 +575,109 @@ void app_main(void)
 
 // ===========================================================================
 // BENCH BLINKY
-// Minimal power-path check: if the onboard LED blinks at 1 Hz while running
-// on buck 5V (USB unplugged), the trunk → buck → XIAO chain is good.
+// Power-path + strip check: the onboard LED and both SK6812 data lines
+// (D9 ring 1, D10 ring 2) flash white together at 1 Hz. If this runs on
+// buck 5V (USB unplugged), the trunk → buck → XIAO → strip chain is good.
 // ===========================================================================
+
+#include "led_strip.h"
 
 /** Half-period of the blink — 500 ms on, 500 ms off gives a 1 Hz pulse. */
 static const uint32_t BLINKY_HALF_PERIOD_MS = 500;
 
+/** LEDs driven per data line: one ring on a 13" drum is π × 13" ≈ 1.04 m,
+ *  which is 62 LEDs at 60/m. Physical LEDs beyond this count stay dark, so a
+ *  longer test strip can't exceed the power budget below. */
+enum { BLINKY_LEDS_PER_LINE = 62 };
+
+/** Requested white level: 50 % of the W channel. */
+static const uint8_t BLINKY_WHITE_LEVEL = 128;
+
+/** Bench LED cap — QS-1205CME is rated 2.1 A continuous; 1.2 A of LEDs plus
+ *  ~0.4 A XIAO peak keeps it at 76 % (power_specs.md §2). */
+static const uint32_t BENCH_LED_CAP_MA = 1200;
+
+/** Uncalibrated, deliberately high estimates until the bench calibration in
+ *  todo.md is done: W channel at 255, and quiescent draw per LED. */
+static const uint32_t EST_W_CHANNEL_MA = 20;
+static const uint32_t EST_IDLE_MA      = 1;
+
+/** Estimate margin (percent) covering calibration error, per standards §0. */
+static const uint32_t EST_MARGIN_PCT   = 110;
+
+static led_strip_handle_t s_strips[2];
+
+/**
+ * Largest W level (≤ requested) whose estimated draw across both lines stays
+ * under the bench cap.
+ *
+ * Estimate: I = n * (w * I_W / 255 + I_idle) * margin.
+ * Solving for w gives w = (cap / margin / n - I_idle) * 255 / I_W, done in
+ * integer math with the margin applied as ×100 / pct.
+ */
+static uint8_t governed_white_level(uint8_t requested)
+{
+    const uint32_t n_leds = 2 * BLINKY_LEDS_PER_LINE;
+    const uint32_t per_led_budget_ua =
+        (BENCH_LED_CAP_MA * 1000 * 100 / EST_MARGIN_PCT) / n_leds;
+    const uint32_t idle_ua = EST_IDLE_MA * 1000;
+    if (per_led_budget_ua <= idle_ua) {
+        return 0;  // Idle draw alone exhausts the budget — keep the strip dark
+    }
+    const uint32_t w_max = (per_led_budget_ua - idle_ua) * 255 / (EST_W_CHANNEL_MA * 1000);
+    return (w_max < requested) ? (uint8_t)w_max : requested;
+}
+
+static void strips_init(void)
+{
+    const gpio_num_t pins[2] = { PIN_LED_DATA, PIN_LED_DATA2 };
+    for (int i = 0; i < 2; i++) {
+        led_strip_config_t strip_cfg = {
+            .strip_gpio_num         = pins[i],
+            .max_leds               = BLINKY_LEDS_PER_LINE,
+            .led_model              = LED_MODEL_SK6812,
+            .color_component_format = LED_STRIP_COLOR_COMPONENT_FMT_GRBW,
+        };
+        led_strip_rmt_config_t rmt_cfg = {
+            .clk_src       = RMT_CLK_SRC_DEFAULT,
+            .resolution_hz = 10 * 1000 * 1000,  // 0.1 µs ticks — fine enough for SK6812 bit timing
+        };
+        ESP_ERROR_CHECK(led_strip_new_rmt_device(&strip_cfg, &rmt_cfg, &s_strips[i]));
+        ESP_ERROR_CHECK(led_strip_clear(s_strips[i]));
+    }
+}
+
+static void strips_fill_white(uint8_t w)
+{
+    for (int s = 0; s < 2; s++) {
+        for (uint32_t i = 0; i < BLINKY_LEDS_PER_LINE; i++) {
+            // W channel only — the cool-white LED renders white more efficiently than R+G+B
+            ESP_ERROR_CHECK(led_strip_set_pixel_rgbw(s_strips[s], i, 0, 0, 0, w));
+        }
+        ESP_ERROR_CHECK(led_strip_refresh(s_strips[s]));
+    }
+}
+
 void app_main(void)
 {
-    ESP_LOGI(TAG, "ADLS Drum Node — bench blinky (full logic disabled)");
+    ESP_LOGI(TAG, "ADLS Drum Node — bench blinky + strip flash (full logic disabled)");
 
     gpio_reset_pin(PIN_LED_ONBOARD);
     gpio_set_direction(PIN_LED_ONBOARD, GPIO_MODE_OUTPUT);
+
+    strips_init();
+
+    const uint8_t white = governed_white_level(BLINKY_WHITE_LEVEL);
+    ESP_LOGI(TAG, "Strips: %d LEDs x 2 lines, white requested=%u governed=%u (cap %lu mA)",
+             BLINKY_LEDS_PER_LINE, BLINKY_WHITE_LEVEL, white,
+             (unsigned long)BENCH_LED_CAP_MA);
 
     bool lit = false;
     while (1) {
         lit = !lit;
         // Onboard LED is active LOW — drive 0 to light it
         gpio_set_level(PIN_LED_ONBOARD, lit ? 0 : 1);
+        strips_fill_white(lit ? white : 0);
         vTaskDelay(pdMS_TO_TICKS(BLINKY_HALF_PERIOD_MS));
     }
 }
