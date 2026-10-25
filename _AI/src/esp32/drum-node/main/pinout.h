@@ -15,7 +15,7 @@
  *   D9/MISO → GPIO 8  D10/MOSI → GPIO 9
  *
  * Layout rationale (EMI / noise isolation):
- *   LEFT  side (A0–D5): analog quiet — trigger inputs, ring detect, buttons
+ *   LEFT  side (A0–D5): analog quiet — trigger inputs, buttons, NTC
  *   RIGHT side (D6–D10): digital output — LED data, status LEDs
  *   Ground pour between rows acts as guard band.
  *****************************************************************************/
@@ -54,27 +54,29 @@ static const gpio_num_t PIN_BTN_MODE = GPIO_NUM_4;
 
 // ---------------------------------------------------------------------------
 // Trigger inputs  (left side — short analog traces, minimal switching coupling)
-// Signal protection chain: 10kΩ series → 1N4728A Zener + 1N5817 Schottky at pin
+// Signal chain (both channels): load R to GND → 10kΩ series →
+// BZT52C3V3S Zener + B5817WS Schottky clamps at pin
 // ---------------------------------------------------------------------------
 
 /** A0/D0 (GPIO 1) — trigger channel 1, TRS Tip.  Primary piezo input. */
 static const gpio_num_t PIN_TRIGGER_CH1 = GPIO_NUM_1;
 
 /** A1/D1 (GPIO 2) — trigger channel 2, TRS Ring.  Second piezo or hi-hat choke.
- *  Hardware: 100kΩ pull-down to GND after clamp diodes.  When no TRS plug is
- *  present the ring line floats low → software reads near-zero ADC → no trigger.
- *  No dedicated ring-detect pin needed; jack is standard 3-lug (no normalling). */
+ *  The load resistor holds an unplugged channel near 0 V, so software treats a
+ *  channel stuck at the noise floor as disconnected — no dedicated detect pin;
+ *  jack is standard 3-lug (no normalling). */
 static const gpio_num_t PIN_TRIGGER_CH2 = GPIO_NUM_2;
 
 // ---------------------------------------------------------------------------
 // LED strip data  (right side)
-// Signal chain: pin → 330Ω series → PRTR5V0U2X ESD diode → strip DIN
+// Signal chain: pin → SN74AHCT1G125 (5V, lifts 3.3V logic above SK6812 VIH)
+//               → 330Ω series → PRTR5V0U2X ESD diode → strip DIN
 // ---------------------------------------------------------------------------
 
-/** D9 (GPIO 8) — primary SK6812NW data output, connected to strip Data1 pad */
+/** D9 (GPIO 8) — SK6812 ring 1 data output (LED bus Data1) */
 static const gpio_num_t PIN_LED_DATA    = GPIO_NUM_8;
 
-/** D10 (GPIO 9) — secondary data output, connected to strip Data2 pad (future) */
+/** D10 (GPIO 9) — SK6812 ring 2 data output (LED bus Data2), sent in parallel with D9 */
 static const gpio_num_t PIN_LED_DATA2   = GPIO_NUM_9;
 
 // ---------------------------------------------------------------------------

@@ -31,7 +31,7 @@ Do not write any code until you have read all four.
 [DESCRIBE WHAT YOU WANT TO BUILD OR FIX]
 
 Examples:
-- "Write the FreeRTOS trigger task for the Drum Node that samples A0 at >1kHz and fires a FastLED update on peak detection"
+- "Write the FreeRTOS trigger task for the Drum Node that samples A0/A1 at ≥10 kHz (ADC continuous mode) and queues an LED update on peak detection"
 - "Write the LVGL v8.4 display init for the Waveshare 7B including CH32V003 backlight and GT911 touch"
 - "Review the drum node schematic in [file] against the protection component checklist in CLAUDE.md section 7"
 
@@ -39,18 +39,20 @@ Examples:
 
 ## Constraints Reminder (copy-paste as needed)
 
-- No `delay()` anywhere — `millis()`, `micros()`, or FreeRTOS only
-- LED data pin is **D9** (GPIO8) primary, **D10** (GPIO9) future — never D0
-- Trigger pins: **A0** (GPIO1) ch1, **A1/D1** (GPIO2) ch2 with 100kΩ pull-down — software ring detect, no normalling contact
-- Buttons: **A2/D2** (GPIO3) test, **D3** (GPIO4) mode — left side, quiet digital
-- Status LEDs: **D5** (GPIO6) blue, **D8** (GPIO7) red — blue left side, red right side
-- UART reserved: **D6/TX** (GPIO43) and **D7/RX** (GPIO44) — kept free for debug
-- LVGL version is **v8.4** — do not use v9 APIs
-- Per-node power cap: `FastLED.setMaxPowerInVoltsAndMilliamps(5, 2500)`
-- PSRAM required for LVGL draw buffer — check `psramInit()` on boot
-- All GPIO numbers come from `pinout.h` constants — never hardcoded inline
-- FastLED minimum version: **3.7.7** (required for `.setRgbw()` on SK6812NW)
-- No reverse polarity MOSFET on Core Node — removed; redundant with XT60 connectors, BMS, and ideal diode
+- Firmware is **ESP-IDF 5.5 C**. No Arduino and no FastLED. LEDs go through `led_hal` over Espressif `led_strip`.
+- No `delay()` anywhere. Use `esp_timer`, tick counts or FreeRTOS primitives.
+- **Derating:** hardware ≤ ~75% of rating; software limits 15–25% below the hardware limit (`standards.md` §0)
+- LED data: **D9** (GPIO8) ring 1 and **D10** (GPIO9) ring 2, both active, through an AHCT1G125 buffer. Never D0.
+- ≤ ~120 LEDs per data line; latency target ≈ 6 ms (hard limit 10 ms)
+- Trigger pins: **A0** (GPIO1) ch1 and **A1/D1** (GPIO2) ch2, each with a load resistor to GND
+- Buttons: **A2/D2** (GPIO3) test, **D3** (GPIO4) mode. Left side, quiet digital.
+- Status LEDs: **D5** (GPIO6) blue, **D8** (GPIO7) red
+- UART reserved: **D6/TX** (GPIO43) and **D7/RX** (GPIO44), kept free for debug
+- LVGL version is **v8.4**. Don't use v9 APIs.
+- LED cap per node: 2500 mA battery / 2000 mA wall / **1200 mA on the bench QS-1205CME buck**. Never above 2500.
+- PSRAM is required for the LVGL draw buffer
+- All GPIO numbers come from `pinout.h` constants. Never hardcode them inline.
+- Core Node power grid is **under revision** (`power_specs.md` §7)
 
 ---
 
@@ -59,9 +61,9 @@ Examples:
 [LIST THE FILES YOU WANT CLAUDE CODE TO FOCUS ON]
 
 Examples:
-- `src/drum_node/trigger.cpp` — ADC sampling and peak detection
-- `src/drum_node/led_engine.cpp` — FastLED mode state machine
-- `src/core_node/ui_dashboard.cpp` — LVGL Mission Control layout
+- `src/esp32/drum-node/main/trigger.c`: ADC sampling and peak detection
+- `src/esp32/drum-node/main/led_engine.c`: mode dispatch, RGBW conversion, governor
+- `src/esp32/core-node/components/ui/ui_main.c`: LVGL main dashboard layout
 - `docs/hardware/pinout.md` — reference only, do not modify
 - `todo.md` — update this when the task is complete
 

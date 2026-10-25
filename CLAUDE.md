@@ -31,20 +31,19 @@ they are more detailed. This file is the quick-start summary only.
 
 ### Drum Node
 - **Board:** Seeed Studio XIAO ESP32-S3
-- **LED data pin:** D9 (GPIO8) primary, D10 (GPIO9) future secondary — never D0
-- **Trigger pins:** A0/D0 (GPIO1) ch1 TRS Tip, A1/D1 (GPIO2) ch2 TRS Ring, A2/D2 (GPIO3) ring detect — all left side
-- **Status LEDs:** D8 (GPIO7) blue, D7 (GPIO44) red — right side, away from analog
-- **Buttons:** D3 (GPIO4) test (5s hold = re-pair), D4 (GPIO5) mode — left side
-- **Onboard LED:** GPIO21, active LOW — replaces discrete green LED
-- **Power input:** 5V from local buck converter — never connect trunk voltage (14.8–20V) directly to XIAO
+- **LED data pins:** D9 (GPIO8) drives ring 1 and D10 (GPIO9) drives ring 2. Both are active and sent in parallel. Never use D0.
+- **Trigger pins:** A0/D0 (GPIO1) ch1 TRS Tip, A1/D1 (GPIO2) ch2 TRS Ring. Each has a load resistor to GND, so unplugged channels read about 0.
+- **Buttons:** A2/D2 (GPIO3) test (5 s hold = re-pair), D3 (GPIO4) mode. Left side.
+- **Status LEDs:** D5 (GPIO6) blue, D8 (GPIO7) red.
+- **Reserved:** D4 (GPIO5) for the NTC. D6/D7 (GPIO43/44) for UART debug.
+- **Onboard LED:** GPIO21, active LOW. Replaces the discrete green LED.
+- **Power input:** 5V from the local buck (Pololu D36V50F5). Never connect trunk voltage (14.0–20.4V) directly to the XIAO.
 
 ### LED Strip
-- **Part:** SK6812NW (RGBW, Natural White ~4000K), 5V, 60 LED/m
-- **FastLED init:**
-  ```cpp
-  FastLED.addLeds<SK6812, DATA_PIN, GRB>(leds, NUM_LEDS).setRgbw(RgbwDefault());
-  ```
-- **Minimum FastLED version:** 3.7.7 — `.setRgbw()` does not exist in earlier versions
+- **Part:** BTF-LIGHTING SK6812 RGBW (RGB + **Cool White** ~6000K), 5V, 60 LED/m, IP30
+- **Per drum:** 2 rings. The largest drum (24") is about 115 LEDs per ring. Limit: **~120 LEDs per data line** (latency).
+- **Driver:** ESP-IDF `led_strip` (SK6812 timing, GRBW format) behind our `led_hal` interface. **FastLED is not used.** See `docs/hardware/software/led_engine.md`.
+- **Data level:** an SN74AHCT1G125 buffer powered from 5V on each data line. The SK6812 needs VIH 3.4V; the XIAO only drives 3.3V.
 
 ---
 
@@ -52,18 +51,20 @@ they are more detailed. This file is the quick-start summary only.
 
 ### Latency
 - Hit-to-LED path must be **< 10ms**
-- `delay()` is **banned everywhere** — use `millis()`, `micros()`, or FreeRTOS primitives
-- Piezo sampling must run in a high-priority FreeRTOS task or ISR
-- `FastLED.show()` must never block the trigger task
+- Design target **≈ 6 ms**: 1 ms detection, 4.6 ms frame for 115 LEDs, and the in-flight frame is pre-empted on a hit
+- `delay()` is **banned everywhere**. Use `esp_timer`, tick counts or FreeRTOS primitives.
+- Piezo sampling: ADC continuous mode (DMA), ≥ 10 kHz per channel, feeding the highest-priority application task
+- `led_hal_show()` must never block the trigger task
 
 ### Power
-- Per-node 5V rail cap: **2500mA** in firmware at all times
-  ```cpp
-  FastLED.setMaxPowerInVoltsAndMilliamps(5, 2500);
-  ```
-- Wall power mode (broadcast from Core Node): tighter cap — 2500mA per node
-- Battery mode: cap may be relaxed up to 12000mA per node
-- Never calculate power budgets based on a flat 5V/3A system supply — see `power_specs.md` for the full 14.8–20V trunk architecture
+- **Derating policy** (`.agent/standards.md` §0): hardware runs at ≤ ~75% of its rating; software limits sit 15–25% below the hardware limit they protect.
+- Per-node LED cap set by the firmware governor:
+  - **2500 mA** on battery
+  - **2000 mA** on wall power (provisional)
+  - **1200 mA** on the interim QS-1205CME bench buck
+  - **Never above 2500 mA.** Values received over ESP-NOW are clamped to this.
+- The governor estimates current from post-RGBW values using calibrated per-channel mA plus a 10% margin. No mode or UI toggle can disable it.
+- See `docs/hardware/power_specs.md` for the trunk architecture (14.0–20.4V) and margins.
 
 ### Memory
 - LVGL draw buffer **must** be allocated in PSRAM:
@@ -73,7 +74,7 @@ they are more detailed. This file is the quick-start summary only.
   );
   ```
 - No `new` / `delete` inside the main loop or any task that runs continuously
-- No dynamic allocation for LED arrays — use static `CRGB leds[NUM_LEDS]`
+- No dynamic allocation for LED frame buffers. Use static arrays sized for the maximum LEDs per line.
 
 ---
 
@@ -81,10 +82,10 @@ they are more detailed. This file is the quick-start summary only.
 
 See `.agent/standards.md` for the full rules. Summary:
 
-- `snake_case` for variables and functions
-- `PascalCase` for classes and structs
-- `constexpr` or `const` for all constants — never `#define` for values
-- All GPIO numbers defined as `constexpr` in `pinout.h` — never hardcoded inline
+- Firmware is **ESP-IDF C**. No Arduino or FastLED APIs.
+- `snake_case` for variables and functions; `snake_case_t` for typedefs
+- `static const` for values and `enum` for compile-time integers. Never `#define` a tunable value.
+- All GPIO numbers are defined as `static const gpio_num_t` in `pinout.h`. Never hardcode them inline.
 - Comments explain **why**, not what: `// Advance to next LED in hit-streak` not `// i++`
 - Any math involving trig, bitwise ops, or signal processing needs a first-principles comment above it
 
@@ -126,7 +127,7 @@ lv_indev_drv_register(&indev_drv);
 - `LV_FONT_DEFAULT &lv_font_montserrat_24`
 - `LV_USE_PERF_MONITOR 1`, `LV_USE_MEM_MONITOR 1`
 
-LVGL and FastLED must never share a task. Use a FreeRTOS queue to pass state
+LVGL and the LED engine must never share a task. Use a FreeRTOS queue to pass state
 from the ESP-NOW receive callback to the LVGL task. Direct label updates from
 an ISR or background task will cause a core panic.
 
@@ -134,26 +135,19 @@ an ISR or background task will cause a core panic.
 
 ## 5. ESP-NOW Architecture
 
-- Core Node is **master** — broadcasts `DrumState` to registered node MACs
+- Core Node is **master**. It unicasts `espnow_config_pkt_t` to registered node MACs.
 - Drum Nodes are **slaves** — receive config, send telemetry fire-and-forget
 - Drum Nodes **never block** waiting for ACK
 - Drum Nodes operate fully autonomously if Core Node is offline
 - New nodes register with Core Node on first contact — MAC stored in NVS
-- Heartbeat: Core Node polls all MACs every 2s, marks OFFLINE after 4s silence
-- Watchdog: Drum Node auto-reboots after 10s without valid packet, reloads NVS state
+- Heartbeat: the Core Node polls every 1 s and marks a node OFFLINE after 3 misses (3.5 s). One lost packet must not flap the status.
+- Watchdog: the ESP-IDF **task watchdog only**, so a node reboots only on a firmware hang. Losing Core Node packets means it runs standalone on NVS settings, with no reboot.
 
-### DrumState struct (downlink)
-```cpp
-struct DrumState {
-    uint8_t  mode;        // LightingMode enum
-    uint8_t  brightness;  // 0–255
-    uint8_t  sensitivity; // trigger threshold
-    uint8_t  tempC;       // node temp (uplink field, zero on downlink)
-    uint8_t  r, g, b, w;  // RGBW color target
-    bool     triggered;   // hit event flag
-    uint16_t velocity;    // ADC peak (0–4095)
-};
-```
+### Wire format, source of truth: `src/esp32/shared/espnow_transport/espnow_transport.h`
+- `espnow_config_pkt_t` (core → drum): `mode_idx`, `color` (0x00RRGGBB), idle/flash brightness, flash/decay time, `threshold` (0–1023), `retrigger_ms`, `hit_curve`, `name`
+- `espnow_telemetry_pkt_t` (drum → core): `raw_reading`, `velocity`
+- `espnow_pair_req_pkt_t` / `espnow_pair_ack_pkt_t`: pairing
+- Modes: `drum_mode_t` in `espnow_transport.h`. v1 is SOLID, PULSE, RAINBOW, CHASE, HEAT_MAP, CUSTOM, STEALTH. Append only, never renumber. Spec: `docs/hardware/software/modes_logic.md`.
 
 ---
 
@@ -164,8 +158,8 @@ Full details in `docs/hardware/pinout.md`. Critical pins only:
 ### Drum Node (XIAO ESP32-S3)
 | Pin | GPIO | Function |
 |-----|------|----------|
-| A0/D0 | 1  | Trigger ch1 — TRS Tip (piezo input, 10kΩ series + Zener + Schottky) |
-| A1/D1 | 2  | Trigger ch2 — TRS Ring (100kΩ pull-down to GND; software ring detect) |
+| A0/D0 | 1  | Trigger ch1, TRS Tip (load R + 10kΩ series + Zener + Schottky) |
+| A1/D1 | 2  | Trigger ch2, TRS Ring (same chain; reads about 0 when unplugged) |
 | A2/D2 | 3  | Test button (INPUT_PULLUP — 5s hold triggers re-pairing) |
 | D3  | 4  | Mode button (INPUT_PULLUP — cycles lighting mode) |
 | D4  | 5  | Reserved — NTC thermistor (Phase 7 thermal management) |
@@ -173,8 +167,8 @@ Full details in `docs/hardware/pinout.md`. Critical pins only:
 | D6  | 43 | UART TX — free for debug (do not assign to peripherals) |
 | D7  | 44 | UART RX — free for debug (do not assign to peripherals) |
 | D8  | 7  | Red LED — 80ms flash on trigger, solid on continuous noise |
-| D9  | 8  | SK6812NW data out primary (330Ω series + ESD diode) |
-| D10 | 9  | SK6812NW data out secondary — future (330Ω series + ESD diode) |
+| D9  | 8  | SK6812 ring 1 data (AHCT1G125 → 330Ω → ESD) |
+| D10 | 9  | SK6812 ring 2 data (AHCT1G125 → 330Ω → ESD) |
 | —   | 21 | Onboard LED — active LOW, confirms logic rail live |
 | 5V  | —  | Power from local buck — NOT trunk voltage |
 
@@ -186,7 +180,7 @@ Full details in `docs/hardware/pinout.md`. Critical pins only:
 | 3   | VSYNC |
 | 5   | DE |
 | 8/9 | GT911 touch SDA/SCL + CH32V003 backlight I2C |
-| ADC | Bus voltage sense (100kΩ/10kΩ divider) |
+| ADC | Bus voltage sense. 150kΩ/10kΩ divider proposed; pin to confirm (GPIO6?). Core power is under revision. |
 
 ---
 
@@ -196,32 +190,44 @@ These are confirmed locked-in hardware decisions. Do not omit them from any
 schematic review or BOM generation.
 
 **PCB package strategy: hybrid SMD/through-hole.** Passives and small-signal diodes
-move to SMD. The P6KE24A TVS and 1000µF input cap stay through-hole — the TVS needs
-the thermal mass of DO-15 to handle 600W transient spikes reliably, and the radial cap
-needs mechanical resilience (lead flex + silicone dab) for vibration on a drum rig.
+are SMD. The P6KE27A TVS and the 1000µF input cap stay through-hole:
+- The TVS needs the thermal mass of the DO-15 package to handle 600W transients reliably.
+- The radial cap needs mechanical resilience (lead flex plus a silicone dab) for vibration on a drum rig.
+
+Every part is sized to the derating policy (`.agent/standards.md` §0).
 
 | Component | Part / Value | Package | Placement | Purpose |
 |-----------|-------------|---------|-----------|---------|
-| TVS diode | P6KE24A | **Through-hole DO-15** | Across SP13 Pin 1/2 | Clamps hot-plug inductive spikes — stays TH for thermal mass |
-| Input cap | 1000µF 25V electrolytic | **Through-hole radial** | After TVS, before buck VIN | Anti-flicker reservoir — stays TH for vibration resistance |
-| Decoupling cap | 100nF ceramic | SMD 0603 | ≤3mm from XIAO VCC pin | High-freq noise suppression |
-| Piezo resistors | 10kΩ | SMD 0805 | Series on A0 (ch1) and A1 (ch2) signal lines | Current-limits piezo signal |
-| Pull-down resistor | 100kΩ | SMD 0805 | A1/D1 ring line to GND | Keeps ch2 at GND when no TRS plug inserted |
+| TVS diode | **P6KE27A** | **Through-hole DO-15** | Across SP13 Pin 1/2 | Clamps hot-plug spikes. Standoff 23.1V (20.4V = 88%); clamp 37.5V (75% of buck max) |
+| Input cap | 1000µF **50V** electrolytic (35V min) | **Through-hole radial** | After TVS, before buck VIN | Anti-flicker reservoir; 20.4V = 41% |
+| Buck | **Pololu D36V50F5** | Module | After input cap | 5V 5.5A, 50V in, reverse protection to 40V; 53% loaded at worst case |
+| Decoupling caps | 100nF + 10µF X7R | SMD 0603 / 0805 | ≤3mm from XIAO 5V pin | High-frequency and local bulk decoupling |
+| XIAO feed diode | B5819WS | SMD SOD-323 | Buck 5V → XIAO 5V pin | Lets USB and trunk power coexist safely (40% loaded) |
+| LED output cap | 1000µF 16V | Radial | At the LED connector | Absorbs flash current steps |
+| Piezo series resistors | 10kΩ | SMD 0805 | Series on A0 (ch1) and A1 (ch2) | Current-limits the piezo signal |
+| Piezo load resistors | 1MΩ start (tune 100k–1M) | SMD 0805 | **Both** channels, signal to GND | Stops floating inputs; sets the hardest hit to about 2.5V at the pin |
 | Zener diode | BZT52C3V3S 3.3V | SMD SOD-123 | Cathode→signal, Anode→GND (both trigger channels) | Clamps positive piezo spikes (replaces 1N4728A) |
 | Schottky diode | B5817WS | SMD SOD-123 | Anode→GND, Cathode→signal (both trigger channels) | Clamps negative ringing (replaces 1N5817) |
-| Data resistors | 330Ω | SMD 0805 | Series on D9 (primary) and D10 (future), close to XIAO | Prevents signal ringing |
-| LED resistors | 220Ω | SMD 0805 | Series on D5 (blue) and D8 (red) | Current-limits status LEDs |
-| Amber LED resistor | 1kΩ | SMD 0805 | SP13 Pin 1 → amber LED → GND | Pre-buck power indicator |
-| ESD diode | PRTR5V0U2X | SMD SOT-363 | D9 and D10 data lines | ESD protection on LED data |
+| Data buffers | SN74AHCT1G125 ×2 | SMD SOT-23-5 | D9 and D10, powered from 5V | Shifts 3.3V data up to 5V logic (SK6812 VIH is 3.4V) |
+| Data resistors | 330Ω | SMD 0805 | After each buffer | Prevents signal ringing |
+| LED resistors | 220Ω | SMD 0805 | Series on D5 (blue) and D8 (red) | Current-limits status LEDs (red about 6mA; blue is dim, 100Ω optional) |
+| Amber LED resistor | **4.7kΩ** | SMD **1206** | SP13 Pin 1 → amber LED → GND | Pre-buck indicator; 3.9mA, 72mW (29% of rating). The old 1kΩ 0805 dissipated 0.34W. |
+| ESD diode | PRTR5V0U2X | SMD SOT-363 | Both data lines, at the connector | ESD protection on LED data |
+| LED header | JST-VH 4-pin | Through-hole | PCB → TA4F panel socket | 10A per contact (25% at 2.5A) |
+| Trace widths | ≥80 mil (5V/LED), ≥40 mil (trunk) | 1 oz Cu | n/a | 25 mil carries only about 1.7A at a 10°C rise |
 
 ---
 
 ## 8. Active Project State
 
-- **Current phase:** Phase 2 — Drum Node PCB design + Core Node power grid wiring
-- **Board confirmed:** Waveshare ESP32-S3-Touch-LCD-7B (Core Node), Seeed XIAO ESP32-S3 (Drum Node — hardware in hand)
-- **Active bottleneck:** Drum Node PCB schematic — dual-channel TRS trigger, D9/D10 LED data routing
-- **Recently locked:** Full drum node GPIO assignments (see section 6), dual-channel TRS trigger, D9 primary LED data, left/right side EMI separation, GPIO21 onboard LED replaces discrete green LED
+- **Current phase:** Phase 2. Drum Node PCB design, plus drum node bench bring-up.
+- **Board confirmed:** Waveshare ESP32-S3-Touch-LCD-7B (Core Node), Seeed XIAO ESP32-S3 (Drum Node, hardware in hand)
+- **Bench setup:** SlimQ DC (measured 20.4V) → 5A blade fuse → single drum node with the interim QS-1205CME buck. LED cap 1200 mA. Firmware is running a bench blinky.
+- **Core Node power:** **under revision.** The wall-only build failed and the review found under-rated parts (`docs/hardware/power_specs.md` §7).
+- **Recently locked (2026-10-24):**
+  - Hardware: D36V50F5 buck, P6KE27A TVS, 50V input cap, AHCT data buffers, JST-VH LED header, load resistors on both trigger channels, 4.7kΩ amber LED resistor.
+  - Firmware: ESP-IDF plus `led_strip`/`led_hal`; task watchdog only.
+  - Policy: derating (standards §0).
 
 Update this section after completing each phase milestone.
 

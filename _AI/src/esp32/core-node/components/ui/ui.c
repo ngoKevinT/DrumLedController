@@ -25,6 +25,7 @@
 #include "ui_main.h"
 #include "ui_global_settings.h"
 #include "ui_drum_settings.h"
+#include "espnow_transport.h"
 
 static const char *TAG = "ui";
 
@@ -114,8 +115,19 @@ int g_selected_drum = 0;
 uint8_t g_master_brightness = 80;   // default 80 %
 bool    g_power_limit_3a    = false;
 
+// Labels are indexed by drum_mode_t — the assert catches a mode added to the
+// shared enum without a matching UI label (or vice versa).
+_Static_assert(UI_NUM_MODES == DRUM_MODE_COUNT,
+               "ui_mode_names[] must have one label per drum_mode_t");
+
 const char *const ui_mode_names[UI_NUM_MODES] = {
-    "SOLID", "PULSE", "STROBE", "RAINBOW", "CHASE", "BOUNCE", "CUSTOM"
+    [DRUM_MODE_SOLID]    = "SOLID",
+    [DRUM_MODE_PULSE]    = "PULSE",
+    [DRUM_MODE_RAINBOW]  = "RAINBOW",
+    [DRUM_MODE_CHASE]    = "CHASE",
+    [DRUM_MODE_HEAT_MAP] = "HEAT MAP",
+    [DRUM_MODE_CUSTOM]   = "CUSTOM",
+    [DRUM_MODE_STEALTH]  = "STEALTH",
 };
 
 // ---------------------------------------------------------------------------

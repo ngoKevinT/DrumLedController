@@ -36,6 +36,14 @@
 
 static const char *TAG = "drum_node";
 
+// ===========================================================================
+// FULL DRUM NODE LOGIC — DISABLED FOR BENCH BRING-UP
+// Temporarily compiled out while validating the trunk power path
+// (wall → fuse → QS-1205CME buck → XIAO). Change `#if 0` to `#if 1` and
+// delete the blinky section at the bottom of this file to restore.
+// ===========================================================================
+#if 0
+
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
@@ -97,7 +105,7 @@ static const uint8_t DRUM_NODE_ID = 1;
 // ---------------------------------------------------------------------------
 
 typedef struct {
-    uint8_t  mode_idx;          /**< Lighting mode index (0-6)             */
+    uint8_t  mode_idx;          /**< drum_mode_t (espnow_transport.h)      */
     uint32_t color;             /**< Base LED color, 0x00RRGGBB            */
     uint8_t  idle_brightness;   /**< Ambient glow level (0-100 %)          */
     uint8_t  flash_brightness;  /**< Peak flash level   (0-100 %)          */
@@ -561,4 +569,31 @@ void app_main(void)
     xTaskCreate(connect_task,  "connect",  4096, NULL, 5, NULL);
 
     ESP_LOGI(TAG, "Tasks started — searching for Core Node...");
+}
+
+#endif  // FULL DRUM NODE LOGIC
+
+// ===========================================================================
+// BENCH BLINKY
+// Minimal power-path check: if the onboard LED blinks at 1 Hz while running
+// on buck 5V (USB unplugged), the trunk → buck → XIAO chain is good.
+// ===========================================================================
+
+/** Half-period of the blink — 500 ms on, 500 ms off gives a 1 Hz pulse. */
+static const uint32_t BLINKY_HALF_PERIOD_MS = 500;
+
+void app_main(void)
+{
+    ESP_LOGI(TAG, "ADLS Drum Node — bench blinky (full logic disabled)");
+
+    gpio_reset_pin(PIN_LED_ONBOARD);
+    gpio_set_direction(PIN_LED_ONBOARD, GPIO_MODE_OUTPUT);
+
+    bool lit = false;
+    while (1) {
+        lit = !lit;
+        // Onboard LED is active LOW — drive 0 to light it
+        gpio_set_level(PIN_LED_ONBOARD, lit ? 0 : 1);
+        vTaskDelay(pdMS_TO_TICKS(BLINKY_HALF_PERIOD_MS));
+    }
 }

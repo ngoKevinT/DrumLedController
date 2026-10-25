@@ -3,8 +3,8 @@
 ## 1. Project Identity & Intent
 
 * **Mission:** To create a low-latency, real-time reactive lighting system for a drum kit that provides visual feedback based on hit velocity and frequency.
-* **Target Hardware:** Waveshare ESP32-S3-Touch-LCD-7B (Core Node), Seeed Studio XIAO ESP32-S3 (Drum Nodes), SK6812NW RGBW LED Strips, Piezo Sensors.
-* **Key Frameworks:** LVGL v8.4 (UI — matches Waveshare driver requirement), FastLED ≥3.7.7 (LED Logic), FreeRTOS (Task Management), ESP-NOW (Wireless).
+* **Target Hardware:** Waveshare ESP32-S3-Touch-LCD-7B (Core Node), Seeed Studio XIAO ESP32-S3 (Drum Nodes), BTF-LIGHTING SK6812 RGBW (Cool White) LED strips at 60 LED/m, piezo sensors.
+* **Key Frameworks:** ESP-IDF 5.5 in C. LVGL v8.4 for the UI (the version the Waveshare drivers need). Espressif `led_strip` (RMT) behind our own `led_hal`, for the LEDs. FreeRTOS for tasks. ESP-NOW for wireless.
 
 ---
 
@@ -12,8 +12,8 @@
 
 Any code generated **must** adhere to these physical limits. Do not ignore these to achieve a "visual effect."
 
-* **Power Limit (The 3.0A Per-Node Protocol):** Each Drum Node's 5V rail must not exceed **3.0A continuous** (enforced via `FastLED.setMaxPowerInVoltsAndMilliamps(5, 2500)`). The system transport voltage is 14.8–20V — the 3.0A limit applies after local buck conversion. See `power_specs.md` for full architecture.
-* **Latency Budget:** Total delay from Piezo hit to LED "Flash" must be **< 10ms**. Use non-blocking interrupts; no `delay()` calls allowed.
+* **Power limit (per node):** the firmware governor caps LED current at **2500 mA** on battery and **2000 mA** on wall power (provisional). The drum buck (Pololu D36V50F5, 5.5A) runs at about 53% at worst case. On the bench with the interim QS-1205CME buck the cap is **1200 mA**. The trunk is 14.0–20.4V and each node steps it down to 5V locally. All limits follow the derating policy in `standards.md` §0. See `docs/hardware/power_specs.md`.
+* **Latency budget:** the time from a piezo hit to the LED flash must be **< 10 ms**, with a design target of about 6 ms. That means at most ~120 LEDs per data line and pre-empting the in-flight frame on a hit (`led_engine.md` §3). Use non-blocking code; `delay()` is not allowed.
 * **Memory Ceiling:** ESP32-S3 internal SRAM is limited. The 1024×600 LVGL draw buffer must be allocated in PSRAM using `heap_caps_malloc(..., MALLOC_CAP_SPIRAM)`. Large assets go in SPIFFS/LittleFS or as indexed palettes.
 
 ---
@@ -29,9 +29,11 @@ Refer to these files to understand the "Infrastructure" before suggesting change
 
 ### B. Functional Modules
 
-* `/docs/software/hit_detection.md`: The math behind Piezo signal processing (ADC sampling + peak detection).
-* `/docs/software/led_engine.md`: FastLED SK6812NW RGBW implementation and the lighting mode state machine.
-* `/docs/software/ui_lvgl.md`: LVGL v9 Mission Control dashboard — 1024×600 layout, touch handlers, ESP-NOW bridge.
+* `/docs/hardware/software/hit_detection.md`: piezo signal processing (ADC continuous sampling and peak detection).
+* `/docs/hardware/software/led_engine.md`: LED driver stack (`led_hal` over `led_strip`), latency budget, RGBW conversion, governor.
+* `/docs/hardware/software/modes_logic.md`: lighting mode list and behavior.
+* `/docs/hardware/software/ui_lvgl.md`: LVGL v8.4 Command Center. 1024×600 layout, stage-then-commit, ESP-NOW bridge.
+* `/docs/hardware/power_specs.md`: power budget, software caps, protection, and Core Node revision items.
 
 ### C. Data & Assets
 
@@ -44,7 +46,7 @@ Refer to these files to understand the "Infrastructure" before suggesting change
 * **Asynchronous Uplink:** Drum-to-Core communication (telemetry, hit notifications) is Fire-and-Forget. The Drum Node must never block waiting for an ACK.
 * **Independent Edge Execution:** Drum Nodes are autonomous. They perform trigger-and-light logic locally based on internal state, regardless of Core Node connectivity. NVS stores last-known sensitivity and mode as fallback.
 * **Downlink Authority:** The Core Node is the "Source of Truth" for configuration. Transmission to Drum Nodes is the highest-priority network task.
-* **Watchdog:** Each Drum Node runs a FreeRTOS watchdog. Auto-reboot after 10s without a valid ESP-NOW packet. On reboot, reload NVS state and resume — LEDs must stay alive.
+* **Watchdog:** each Drum Node runs the ESP-IDF task watchdog (`esp_task_wdt`), so it reboots **only if the firmware hangs**. Losing Core Node packets is not a fault: the node keeps running standalone on its NVS settings. After any reboot, it reloads NVS state and resumes.
 
 ---
 
@@ -62,6 +64,10 @@ To maintain project continuity, the Agent must follow this loop:
 
 ## 6. Active Project State
 
-* **Current Milestone:** Phase 2 — Drum Node PCB design and Core Node power grid wiring.
-* **Active Bottleneck:** Reconciling LVGL v9 display driver initialization for the Waveshare ESP32-S3-Touch-LCD-7B (CH32V003 backlight controller, GT911 touch, RGB panel timings).
-* **Recently Confirmed:** TVS diode (P6KE24A) on SP13 input and 100nF 0603 decoupling cap on XIAO VCC are locked into the Drum Node hardware spec.
+* **Current milestone:** Phase 2. Drum Node PCB design, plus drum node bench bring-up on direct wall power (SlimQ → 5A fuse → node).
+* **Active bottleneck:** Core Node power grid is **under revision** after the wall-only build failed (`power_specs.md` §7).
+* **Recently confirmed (2026-10-24):**
+  * Drum buck: Pololu D36V50F5. TVS: P6KE27A. 50V input cap. JST-VH LED header. SN74AHCT1G125 data buffers.
+  * Toolchain: ESP-IDF plus `led_strip`/`led_hal`.
+  * Watchdog: task watchdog only.
+  * Derating policy (`standards.md` §0).

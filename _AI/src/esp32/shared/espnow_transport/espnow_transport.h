@@ -39,6 +39,24 @@ typedef enum {
 } espnow_pkt_type_t;
 
 // ---------------------------------------------------------------------------
+// Lighting modes — value of espnow_config_pkt_t.mode_idx
+// Shared by both nodes so the Core UI labels and the drum renderer can never
+// disagree on an index. Behavior spec: docs/hardware/software/modes_logic.md.
+// Append new modes before DRUM_MODE_COUNT; never renumber (indices live in NVS).
+// ---------------------------------------------------------------------------
+
+typedef enum {
+    DRUM_MODE_SOLID    = 0, /**< Solid color at idle level; hits flash and decay  */
+    DRUM_MODE_PULSE    = 1, /**< Breathing idle glow; hits spike on top           */
+    DRUM_MODE_RAINBOW  = 2, /**< Hue cycle around the ring (speed 0 = static)     */
+    DRUM_MODE_CHASE    = 3, /**< Hit travels outward from the sensor position     */
+    DRUM_MODE_HEAT_MAP = 4, /**< Hue follows rolling hit rate; brightness follows velocity */
+    DRUM_MODE_CUSTOM   = 5, /**< Per-drum pattern slot; renders as SOLID until defined */
+    DRUM_MODE_STEALTH  = 6, /**< Strip off; diagnostic LEDs stay active           */
+    DRUM_MODE_COUNT
+} drum_mode_t;
+
+// ---------------------------------------------------------------------------
 // Wire-format packet structs — packed (no padding between fields)
 // ---------------------------------------------------------------------------
 
